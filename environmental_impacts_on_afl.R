@@ -1,0 +1,1 @@
+# scoring based on influences of environment or location (physical factors)
