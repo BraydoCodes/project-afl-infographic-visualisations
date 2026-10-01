@@ -7,12 +7,23 @@ convert_goal_points_to_number <- function(x){
 }
 
 # packages required
-library(dplyr)
+# library(dplyr) -> don't need because tidyverse has this at the core?
 library(tidyverse)
+library(ggtext)
+library(ggplot2)
 
+# assign the font
+info_font <- "Bahnschrift"
+
+# systemfonts::system_fonts() # - uncomment to view all downloaded fonts
 # change variables here
 selected_year = "2025"
 selected_team = "Adelaide"
+
+round_graph_fill <- c("#774762FF", "#BA6E1DFF", "#D6BB3BFF", "#755028FF", "#F2DD78FF", "#205F4BFF", "#913914FF", 
+                      "#585854FF", "#F0A430FF", "#768048FF", "#800000FF", "#1B3A54FF", "#774762FF", "#BA6E1DFF", 
+                      "#D6BB3BFF", "#755028FF", "#F2DD78FF", "#205F4BFF", "#913914FF", "#585854FF", "#F0A430FF", 
+                      "#768048FF", "#800000FF", "#1B3A54FF", "#774762FF", "#BA6E1DFF", "#D6BB3BFF", "#755028FF")
 
 # use the stats table that lists every player that has played an afl game since 2012
 stats_data <- read.csv("./stats.csv")
@@ -20,8 +31,19 @@ stats_data <- read.csv("./stats.csv")
 # filter down stats table
 stats_for_team <- stats_data %>% filter(Year==selected_year, Team==selected_team) 
 
+# keep the order preserved for later
+round_order <- unique(stats_for_team$Round)
+
 # find the experience in the team for each round of the year
 avg_games_player <- stats_for_team %>% group_by(Round) %>% summarise(Avg_Experience = mean(GameNumber), Total_Experience = sum(GameNumber))
+avg_games_player <- avg_games_player %>% mutate(Round = factor(Round, levels = round_order))
+# plot the avg games per player onto a bar plot
+avg_games_plot <- ggplot(avg_games_player, aes(x=Round, y=Avg_Experience, fill=Round))+ 
+  geom_col( ) + scale_fill_manual(values=round_graph_fill) +
+  theme(legend.position="none", axis.text.x = element_text(angle = 45, hjust = 1))
+
+avg_games_plot
+
 
 # find the number of players that played a game that year
 unique_players <- n_distinct(stats_for_team$PlayerName)
