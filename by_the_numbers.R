@@ -11,6 +11,7 @@ convert_goal_points_to_number <- function(x){
 library(tidyverse)
 library(ggtext)
 library(ggplot2)
+library(ggthemes)
 
 # assign the font
 info_font <- "Bahnschrift"
@@ -20,7 +21,7 @@ overlap_perc <- 0.01
 # systemfonts::system_fonts() # - uncomment to view all downloaded fonts
 # change variables here
 selected_year = "2025"
-selected_team = "Adelaide"
+selected_team = "Brisbane"
 
 round_graph_fill <- c("#774762FF", "#BA6E1DFF", "#D6BB3BFF", "#755028FF", "#F2DD78FF", "#205F4BFF", "#913914FF", 
                       "#585854FF", "#F0A430FF", "#768048FF", "#800000FF", "#1B3A54FF", "#774762FF", "#BA6E1DFF", 
@@ -78,20 +79,42 @@ avg_competition_unique_players <- floor(n_distinct(yearly_team_stats$PlayerName)
 
 # find players who played all game time
 games_player_all_time <- stats_for_team %>% filter(X.Played==100)
-num_of_gpat <- length(games_player_all_time)
+num_of_gpat <- nrow(games_player_all_time)
+
+## competition average
+avg_all_games_played_per_team <- yearly_team_stats %>% filter(X.Played==100) %>% group_by(Team) %>% summarise(total_all_played = n())
+avg_one <- mean(avg_all_games_played_per_team$total_all_played)
 
 # keep only the information from the player that had the most disposals in each round
 highest_possession_getters <- stats_for_team %>% group_by(Round) %>% filter(Disposals == max(Disposals))
-num_of_hpg <- n_distinct(highest_possession_getters)
+num_of_hpg <- n_distinct(highest_possession_getters$PlayerId)
 
-team_player_stats <- data.frame(UniquePlayers = c(unique_players), NumAllGametime = c(num_of_gpat), UniqueHighestPossessionGetters = c(num_of_hpg))
-flipped_tps <- data.frame(t(team_player_stats))
-colnames(flipped_tps) <- c(selected_team)
+# competition average most disposals
+all_highest_possession_getters <- yearly_team_stats %>% group_by(Team, Round) %>% filter(Disposals == max(Disposals))
+average_hpg <- n_distinct(all_highest_possession_getters$PlayerId) / length(competition_team_numbers)
 
-team_player_plot <- ggplot(flipped_tps, aes(x=row.names(flipped_tps), y="Adelaide", fill=row.names(flipped_tps))) + 
-  geom_col( ) + scale_fill_manual(values=round_graph_fill) + theme(legend.position="none")
+# create the dataframe , this solution right now is quite volatile
 
-team_player_plot
+team_player_stats <- data.frame(
+  team=rep(c(selected_team, "All Teams"), each=3),
+  stat=rep(c('Number All Game Time', 'Unique Highest Possession Getters', 'Unique Players'), times=2),
+  value=c(num_of_gpat, num_of_hpg, unique_players, avg_one, average_hpg, avg_competition_unique_players)
+)
+
+# all in one variation
+team_player_plot <- ggplot(team_player_stats, aes(x=stat, y=value, fill=team)) + 
+  labs(x='Statistic', y='Value', title='Number of in player stats for selected team & the competitions average') + 
+  geom_bar(position='dodge', stat='identity') + scale_fill_manual(values=round_graph_fill) + 
+  theme(plot.title = element_text(hjust=0.5, size=15, face='bold'), axis.title.x=element_blank()) 
+
+# spread version
+team_player_plot_multi <- ggplot(team_player_stats, aes(x=team, y=value, fill=value)) + 
+  labs(x='Statistic', y='Value', title='Number of in player stats for selected team & the competitions average') + 
+  geom_col( ) + theme_few() +
+  theme(plot.title = element_text(hjust=0.5, size=15, face='bold'), axis.title.x=element_blank()) + 
+  facet_wrap(~stat)
+
+team_player_plot_multi
 
 ###### LADDER
 # This next section focuses on the success of the team
