@@ -30,8 +30,13 @@ round_graph_fill <- c("#774762FF", "#BA6E1DFF", "#D6BB3BFF", "#755028FF", "#F2DD
 # use the stats table that lists every player that has played an afl game since 2012
 stats_data <- read.csv("./stats.csv")
 
+yearly_team_stats <- stats_data %>% filter(Year==selected_year)
+
+# count competition team number - we do this because teams are likely to be added
+competition_team_numbers <- unique(yearly_team_stats$Team)
+
 # filter down stats table
-stats_for_team <- stats_data %>% filter(Year==selected_year, Team==selected_team) 
+stats_for_team <- yearly_team_stats %>% filter(Team==selected_team) 
 
 # keep the order preserved for later
 round_order <- unique(stats_for_team$Round)
@@ -69,13 +74,24 @@ avg_games_plot
 
 # find the number of players that played a game that year
 unique_players <- n_distinct(stats_for_team$PlayerName)
-unique_players
+avg_competition_unique_players <- floor(n_distinct(yearly_team_stats$PlayerName) / length(competition_team_numbers))
 
 # find players who played all game time
 games_player_all_time <- stats_for_team %>% filter(X.Played==100)
+num_of_gpat <- length(games_player_all_time)
 
 # keep only the information from the player that had the most disposals in each round
 highest_possession_getters <- stats_for_team %>% group_by(Round) %>% filter(Disposals == max(Disposals))
+num_of_hpg <- n_distinct(highest_possession_getters)
+
+team_player_stats <- data.frame(UniquePlayers = c(unique_players), NumAllGametime = c(num_of_gpat), UniqueHighestPossessionGetters = c(num_of_hpg))
+flipped_tps <- data.frame(t(team_player_stats))
+colnames(flipped_tps) <- c(selected_team)
+
+team_player_plot <- ggplot(flipped_tps, aes(x=row.names(flipped_tps), y="Adelaide", fill=row.names(flipped_tps))) + 
+  geom_col( ) + scale_fill_manual(values=round_graph_fill) + theme(legend.position="none")
+
+team_player_plot
 
 ###### LADDER
 # This next section focuses on the success of the team
