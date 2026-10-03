@@ -43,14 +43,17 @@ all_scores_in_year$Point <- ifelse(
     0   # then 0 if they lost
   ))
 
-table_for_clubs <- all_scores_in_year %>% group_by(Team, Year) %>% summarise(TotalPoints = sum(Point), Percentage = sum(ScoreFor)/sum(ScoreAgainst) * 100)
+table_for_clubs <- all_scores_in_year %>% group_by(Team, Year) %>% summarise(RoundPlayed = n(),
+                                                                             Wins = sum(Point == 4),
+                                                                             Draws = sum(Point == 2),
+                                                                             Loses = sum(Point == 0),
+                                                                             TotalPoints = sum(Point), 
+                                                                             Percentage = round(sum(ScoreFor)/sum(ScoreAgainst) * 100, 1))
 
 # rank position for each year
-ranking_for_clubs <- table_for_clubs %>% arrange(-TotalPoints, -Percentage) %>% group_by(Year) %>%
+ranking_for_clubs_all <- table_for_clubs %>% arrange(-TotalPoints, -Percentage) %>% group_by(Year) %>%
   mutate(position = order(order(rank(TotalPoints, ties.method = "min"),decreasing = TRUE)))
 
 # ladder for target year
 target_year = 2025
 ranking_for_clubs <- ranking_for_clubs %>% filter(Year == target_year)
-# clean up the percentage
-ranking_for_clubs$Percentage <- round(ranking_for_clubs$Percentage, 1)
