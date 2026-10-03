@@ -133,3 +133,16 @@ venue_summary <- score_games_year %>% group_by(Venue) %>% summarise(GamesPlayed 
 
 total_scores_over_100 <- score_games_year %>% count(score >= 100)
 higher_first_half_score <- score_games_year %>% count(first_half_to_second_half >= 0.5) 
+total_scores_over_100[2,2]
+team_scores_over_100 <- paste0("Scores over 100", "Higher first half totals")
+stats_descripter <- ggplot() + theme_void() + theme(panel.background = element_rect(fill = "white"), 
+  plot.margin = margin_auto(1, unit = "cm"),
+  plot.background = element_rect(fill = "grey30", colour = "black", linewidth = 0.5)) +
+  annotate("text", x = 6, y = 25.75, size = 12, label = paste0("Summary of ", selected_team, "s' season in ", selected_year), fontface = "bold") +
+  annotate("label", x = 4, y = 25, size = 8, label = "Scores over 100", fill="#774762FF") +
+  annotate("label", x = 8, y = 25, size = 8, label = "Higher first half totals", fill="#205F4BFF") +
+  annotate("text", x = 4, y = 24.5, size = 5, label = total_scores_over_100[2,2], fontface = "bold") +
+  annotate("text", x = 8, y = 24.5, size = 5, label = higher_first_half_score[2,2], fontface = "bold") +
+  annotate("text", x = 0, y = 22.5, label="") + annotate("text", x = 12, y = 27, label="")
+  
+stats_descripter
