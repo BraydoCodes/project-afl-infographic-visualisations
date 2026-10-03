@@ -12,6 +12,7 @@ library(tidyverse)
 library(ggtext)
 library(ggplot2)
 library(ggthemes)
+library(RColorBrewer)
 
 # assign the font
 info_font <- "Bahnschrift"
@@ -129,7 +130,18 @@ score_games_year <- all_games_year %>% mutate(first_half_to_second_half = case_w
                                               score = case_when(HomeTeam == selected_team ~ HomeTeamScore, AwayTeam == selected_team ~ AwayTeamScore))
 score_games_year <- score_games_year %>% select(GameId, Venue, score, first_half_to_second_half) %>%  filter(score != -1)
 # insights based on the venue
-venue_summary <- score_games_year %>% group_by(Venue) %>% summarise(GamesPlayed = n(), AverageScore = mean(score))
+venue_summary <- score_games_year %>% group_by(Venue) %>% summarise(GamesPlayed = n(), AverageScore = round(mean(score), 1))
+
+venue_plot <- ggplot(venue_summary, aes(x = Venue, y = AverageScore, fill = GamesPlayed, label = AverageScore)) + 
+  labs(x = "Venue Played", y = "Average Score", title = paste0("Average Score achieved at each venue in ", selected_year), fill = "Games Played") +
+  scale_fill_continuous(palette = brewer.pal(n = 3, name = "Greens")) +
+  geom_bar(stat = "identity", width = 0.6) + 
+  geom_label(nudge_y = 3.75) + theme_classic() +
+  theme(plot.title = element_text(hjust = 0.5, size = 15, face = 'bold'), 
+        legend.title = element_text(), legend.position = "bottom")
+venue_plot
+
+
 
 total_scores_over_100 <- score_games_year %>% count(score >= 100)
 higher_first_half_score <- score_games_year %>% count(first_half_to_second_half >= 0.5) 
