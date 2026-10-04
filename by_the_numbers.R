@@ -146,4 +146,6 @@ stats_descripter <- ggplot() + theme_void() + theme(panel.background = element_r
   annotate("text", x = 0, y = 22.5, label="") + annotate("text", x = 12, y = 27, label = "")
 
 # finally put all the graphs together
-stats_descripter + venue_plot + team_player_plot_multi + avg_games_plot
+vis <- stats_descripter + venue_plot + team_player_plot_multi + avg_games_plot
+vis_location <- "current_vis_year_team.png"
+test <- ggsave(filename = vis_location, plot = vis, width = 50, height = 50/(1920/1080), units = "cm") # this currently assumes you have a 1980 by 1080 monitor as it resizes to 1920 by 1080 p

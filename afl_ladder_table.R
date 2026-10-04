@@ -5,6 +5,8 @@ library(dplyr)
 library(gt) # for table generation
 library(gtExtras)
 
+
+
 # filter by year
 ladder_for_year <- ranking_for_clubs_all %>% filter(Year == selected_year)
 
@@ -28,3 +30,19 @@ ladder_table <- ladder_for_year %>% gt() %>%
   gt_theme_pff()
 
 ladder_table
+class(ladder_table) # debugging
+find.package("knitr")
+
+# this code is directly from gtextra github, removing problematic line, credit to https://github.com/jthomasmock/gtExtras/blob/master/R/gt_reprex_image.R
+# create temp file
+img_out <- tempfile(fileext = ".png")
+
+# save image to temp
+save_obj <- gt::gtsave(ladder_table, img_out) %>%
+  utils::capture.output(type = "message") %>%
+  invisible()
+
+print(save_obj)
+
+table_image_location <- knitr::include_graphics(img_out)[1]
+
