@@ -10,6 +10,7 @@ convert_goal_points_to_number <- function(x){
 library(tidyverse)
 library(ggtext)
 library(ggplot2)
+library(gghighlight)
 library(ggthemes)
 library(RColorBrewer) # for some of the palettes used
 
@@ -145,7 +146,52 @@ stats_descripter <- ggplot() + theme_void() + theme(panel.background = element_r
   annotate("text", x = 8, y = 24.5, size = 4, label = higher_first_half_score[2,2], fontface = "bold") +
   annotate("text", x = 0, y = 22.5, label="") + annotate("text", x = 12, y = 27, label = "")
 
+# small graph to have alongside the original ladder table
+past_comparison_of_ranking <- rbind(previous_ranking_for_clubs %>% filter(Team == selected_team),
+                                    ranking_for_clubs %>% filter(Team == selected_team))
+key_comparison_ranking <- past_comparsion_of_ranking %>% select(c('Year', 'Wins', "Loses", 'Percentage', 'position'))
+key_comparison_ranking_longer <- key_comparison_ranking %>% pivot_longer(!Year, names_to = 'Stat', values_to = 'Total')
+
+index <- 4
+position_ranking <- rbind(key_comparison_ranking_longer[1,], key_comparison_ranking_longer[(1 + index),])
+position_ranking[2,]["Total"]
+
+recolour <- function(p1, p2){
+  if(p1 < p2){
+    c('green') # improvement
+  } else if(p1 > p2){
+    c('red') # no improvement
+  } else {
+    c('yellow') # equal
+  }
+}
+
+stat_comparison_plot <- function(d, stat, stat_name){
+  ggplot(d, aes(x = factor(Year), y = Total, fill = c("gray"))) +
+    labs(x = paste0(stat, ' in Year'), y = 'Total', title = paste0(selected_team, "'s ", selected_year, " vs ", previous_year, " on ", stat_name)) + 
+    geom_col() + gghighlight(Year == selected_year) + scale_x_discrete() + scale_fill_manual(values = recolour(d[1,]["Total"], d[2,]["Total"])) + theme_few() +
+    theme(plot.title = element_text(hjust = 0.5, size = 15, face = 'bold')) + guides(fill = FALSE)
+}
+
+win_ranking <- rbind(key_comparison_ranking_longer[1,], key_comparison_ranking_longer[(1 + index),])
+p1 <- stat_comparison_plot(position_ranking, "Total", "Number of Wins")
+p1
+
+
 # finally put all the graphs together
 vis <- stats_descripter + venue_plot + team_player_plot_multi + avg_games_plot
+
+layout <- c(
+  area(t=1, l=1, b=2, r=6), #stats_descripter
+  area(t=2, l=1, b=3, r=6), #ladder_table
+  area(t=3, l=1, b=4, r=6),
+  area(t=4, l=1, b=5, r=6),
+  area(t=5, l=1, b=6, r=6)
+)
+
+testing <- stats_descripter + ladder_table + venue_plot + team_player_plot_multi + avg_games_plot + plot_layout(design = layout)
+testing + plot_annotation(title = paste0(selected_team, "'s ", selected_year, " season."))
+
+# add an annotation to the top of the plots
 vis_location <- "current_vis_year_team.png"
 test <- ggsave(filename = vis_location, plot = vis, width = 50, height = 50/(1920/1080), units = "cm") # this currently assumes you have a 1980 by 1080 monitor as it resizes to 1920 by 1080 p

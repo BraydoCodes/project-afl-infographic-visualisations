@@ -31,6 +31,7 @@ ladder_table <- ladder_for_year %>% gt() %>%
 
 ladder_table
 class(ladder_table) # debugging
+
 find.package("knitr")
 
 # this code is directly from gtextra github, removing problematic line, credit to https://github.com/jthomasmock/gtExtras/blob/master/R/gt_reprex_image.R

@@ -56,4 +56,8 @@ ranking_for_clubs_all <- table_for_clubs %>% arrange(-TotalPoints, -Percentage) 
 
 # ladder for target year
 target_year = 2025
-ranking_for_clubs <- ranking_for_clubs %>% filter(Year == target_year)
+ranking_for_clubs <- ranking_for_clubs_all %>% filter(Year == target_year)
+
+# previous year if applicable
+previous_year <- target_year - 1
+previous_ranking_for_clubs <- ranking_for_clubs_all %>% filter(Year == previous_year)

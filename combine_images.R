@@ -9,4 +9,4 @@ vis_path <- paste0(dirname(rstudioapi::getSourceEditorContext()$path), "/", vis_
 v_t <- load.image(vis_path)
 
 a_t <- imlist(l_t, v_t) 
-plot(a_t, axes=FALSE) # currently manually export a pdf in portrait
+plot(a_t, axes=FALSE,  imager::main = "") # currently manually export a pdf in portrait
