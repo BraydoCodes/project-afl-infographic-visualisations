@@ -1,5 +1,6 @@
 # this file will present a teams season summed up by numbers
 # it will provide an insight to the numbers that made up the season
+# this also assumes you have run interesting_insights.R correctly
 
 # this function converts a goals.points double into a integer score
 convert_goal_points_to_number <- function(x){
@@ -12,16 +13,24 @@ library(ggtext)
 library(ggplot2)
 library(gghighlight)
 library(ggthemes)
+library(ggicons)
+library(ggpattern)
 library(RColorBrewer) # for some of the palettes used
-
 library(patchwork) # for merging r studio graphs
+library(extrafont)
+loadfonts(device = "win")
+# the line below can be used to download ionicons (the icon service) used so that the icons package is aware of it
+# icons::download_ionicons()
+
 
 # assign the font
 info_font <- "Bahnschrift"
 
 overlap_perc <- 0.01
 
-# systemfonts::system_fonts() # - uncomment to view all downloaded fonts
+systemfonts::system_fonts() # - uncomment to view all downloaded fonts
+#systemfonts::get_from_google_fonts("Carter One") # uncomment this to download the foot used in this project (it is a free google font)
+font_family <- "Helvetica"
 # change variables here
 selected_year = "2025"
 selected_team = "Brisbane" # could be interesting if each team has an associated colour
@@ -149,35 +158,72 @@ stats_descripter <- ggplot() + theme_void() + theme(panel.background = element_r
 # small graph to have alongside the original ladder table
 past_comparison_of_ranking <- rbind(previous_ranking_for_clubs %>% filter(Team == selected_team),
                                     ranking_for_clubs %>% filter(Team == selected_team))
-key_comparison_ranking <- past_comparsion_of_ranking %>% select(c('Year', 'Wins', "Loses", 'Percentage', 'position'))
+key_comparison_ranking <- past_comparison_of_ranking %>% select(c('Year', 'Wins', "Loses", 'Percentage', 'position'))
 key_comparison_ranking_longer <- key_comparison_ranking %>% pivot_longer(!Year, names_to = 'Stat', values_to = 'Total')
 
 index <- 4
 position_ranking <- rbind(key_comparison_ranking_longer[1,], key_comparison_ranking_longer[(1 + index),])
-position_ranking[2,]["Total"]
 
-recolour <- function(p1, p2){
+adjust <- function(p1, p2, type){
+  # MUST FOLLOW FORMAT (SIZE = 3): c(IMPROVEMENT_VALUE, DETERIORATION_VALUE, EQUAL_VALUE)
+  option_icon <- c(icons::ionicons$"arrow-up-outline", icons::ionicons$"arrow-down-outline", icons::ionicons$"reorder-two-outline")
+  option_pattern <- c('#639754', '#D61F1F', '#E8BF0F')
+  option_fill <- c('#7BB662', '#E03C32', '#FFD301')
+  df <- data.frame(option_icon, option_pattern, option_fill)
+  type_index <- which(c('icon', 'pattern','fill') == type)
+  filt_df <- df[,type_index]
+  
   if(p1 < p2){
-    c('green') # improvement
+    filt_df[1]
   } else if(p1 > p2){
-    c('red') # no improvement
+    filt_df[2]
   } else {
-    c('yellow') # equal
+    filt_df[3]
   }
 }
 
-stat_comparison_plot <- function(d, stat, stat_name){
-  ggplot(d, aes(x = factor(Year), y = Total, fill = c("gray"))) +
-    labs(x = paste0(stat, ' in Year'), y = 'Total', title = paste0(selected_team, "'s ", selected_year, " vs ", previous_year, " on ", stat_name)) + 
-    geom_col() + gghighlight(Year == selected_year) + scale_x_discrete() + scale_fill_manual(values = recolour(d[1,]["Total"], d[2,]["Total"])) + theme_few() +
-    theme(plot.title = element_text(hjust = 0.5, size = 15, face = 'bold')) + guides(fill = FALSE)
+# HELPER FUNCTION BASED ON DIFFERENCE, USED WHEN A DETERMINED DIRECTION IS REQUIRE TO MOVE OBJECT
+difference_to_unit <- function(num1, num2){
+  as.numeric((num2 - num1)/abs(num2 - num1) * (abs(num1) / 15))
 }
 
-win_ranking <- rbind(key_comparison_ranking_longer[1,], key_comparison_ranking_longer[(1 + index),])
+custom_theme <- theme(plot.background = element_rect(fill = "#202020"))
+
+stat_comparison_plot <- function(d, stat, stat_name){
+  ggplot(d, aes(x = factor(Year), y = Total, fill = c("gray"))) +
+    labs(x = paste0(stat, ' in Year'), y = 'Total', 
+         title = toupper(paste0(selected_team, "'s ", selected_year, " vs ", previous_year, " on ", stat_name)),
+         subtitle = paste0("Only the ", selected_year, " is included.")) + 
+    geom_text(aes(x = factor(Year), y = Total + (Total * 0.1), label = Total), 
+              size = 10,
+              fontface = "bold") + 
+    geom_col_pattern(
+      pattern_alpha = 0.1,
+      pattern_fill = adjust(d[1,]["Total"], d[2,]["Total"], 'pattern'),
+      pattern_colour  = adjust(d[1,]["Total"], d[2,]["Total"], 'pattern'),
+      pattern_size = 1,
+      pattern_angle = 15
+    ) + gghighlight(Year == selected_year) + scale_x_discrete() +
+    scale_fill_manual(values = adjust(d[1,]["Total"], d[2,]["Total"], 'fill')) + theme_few() +
+    theme(plot.title = element_text(hjust = 0.5, size = 15, face = 'bold')) + guides(fill = "none") + 
+    annotation_icon(icon = adjust(d[1,]["Total"], d[2,]["Total"], 'icon'), x = selected_year , 
+                    y = as.numeric(d[2,]["Total"]) / 2 + difference_to_unit(d[1,]["Total"], d[2,]["Total"]), size = 20) +
+    annotate("text", x = selected_year, y = as.numeric(d[2,]["Total"]) / 2 - difference_to_unit(d[1,]["Total"], d[2,]["Total"]), 
+             label = abs(as.numeric(d[2,]["Total"]) - as.numeric(d[1,]["Total"])), size = 15) + 
+    theme_minimal(base_family = font_family)
+}
+
 p1 <- stat_comparison_plot(position_ranking, "Total", "Number of Wins")
 p1
 
+perc_ranking <- rbind(key_comparison_ranking_longer[3,], key_comparison_ranking_longer[(3 + index),])
+p2 <- stat_comparison_plot(perc_ranking, "Total", "Percentage at End of Season")
+p2
+p1 + p2
+# TODO 
+# LOSSES AND POSITION ARE INVERT IN FUNCTION RECOLOUR
 
+as.numeric(position_ranking[2,]["Total"])
 # finally put all the graphs together
 vis <- stats_descripter + venue_plot + team_player_plot_multi + avg_games_plot
 
