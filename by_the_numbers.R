@@ -22,16 +22,13 @@ loadfonts(device = "win")
 # the line below can be used to download ionicons (the icon service) used so that the icons package is aware of it
 # icons::download_ionicons()
 
-
-# assign the font
-info_font <- "Bahnschrift"
-
-overlap_perc <- 0.01
-
-systemfonts::system_fonts() # - uncomment to view all downloaded fonts
+#systemfonts::system_fonts() # - uncomment to view all downloaded fonts
 #systemfonts::get_from_google_fonts("Carter One") # uncomment this to download the foot used in this project (it is a free google font)
+
+# SEE ISSUE #1 - issues with font [https://github.com/BraydoCodes/project-afl-infographic-visualisations/issues/1]
 font_family <- "Helvetica"
-# change variables here
+
+# CHANGE YEAR AND TEAM YOU WANT TO SELECT - YEAR MUST BE BETWEEN 2012-CURRENT AND TEAM MUST BE THE LOCATION OF THE TEAM 
 selected_year = "2025"
 selected_team = "Brisbane" # could be interesting if each team has an associated colour
 
@@ -161,8 +158,7 @@ past_comparison_of_ranking <- rbind(previous_ranking_for_clubs %>% filter(Team =
 key_comparison_ranking <- past_comparison_of_ranking %>% select(c('Year', 'Wins', "Loses", 'Percentage', 'position'))
 key_comparison_ranking_longer <- key_comparison_ranking %>% pivot_longer(!Year, names_to = 'Stat', values_to = 'Total')
 
-index <- 4
-position_ranking <- rbind(key_comparison_ranking_longer[1,], key_comparison_ranking_longer[(1 + index),])
+num_of_stats <- 4
 
 adjust <- function(p1, p2, type){
   # MUST FOLLOW FORMAT (SIZE = 3): c(IMPROVEMENT_VALUE, DETERIORATION_VALUE, EQUAL_VALUE)
@@ -187,8 +183,8 @@ difference_to_unit <- function(num1, num2){
   as.numeric((num2 - num1)/abs(num2 - num1) * (abs(num1) / 15))
 }
 
-custom_theme <- theme(plot.background = element_rect(fill = "#202020"))
-
+# FUNCTION TO PLOT A COMPARISON BETWEEN THE CURRENT AND PREVIOUS YEAR FOR A STAT, A FUNCTION IS USED DYNAMICALLY
+# USES ADJUST FUNCTION AND DIFFERENCE TO UNIT FUNCTION
 stat_comparison_plot <- function(d, stat, stat_name){
   ggplot(d, aes(x = factor(Year), y = Total, fill = c("gray"))) +
     labs(x = paste0(stat, ' in Year'), y = 'Total', 
@@ -213,29 +209,20 @@ stat_comparison_plot <- function(d, stat, stat_name){
     theme_minimal(base_family = font_family)
 }
 
-p1 <- stat_comparison_plot(position_ranking, "Total", "Number of Wins")
-p1
-
-perc_ranking <- rbind(key_comparison_ranking_longer[3,], key_comparison_ranking_longer[(3 + index),])
+# combine only the win stat info and plot
+win_ranking <- rbind(key_comparison_ranking_longer[1,], key_comparison_ranking_longer[(1 + num_of_stats),])
+p1 <- stat_comparison_plot(win_ranking, "Total", "Number of Wins")
+# combine only the percentage stat info and plot
+perc_ranking <- rbind(key_comparison_ranking_longer[3,], key_comparison_ranking_longer[(3 + num_of_stats),])
 p2 <- stat_comparison_plot(perc_ranking, "Total", "Percentage at End of Season")
-p2
+
 p1 + p2
 # TODO 
 # LOSSES AND POSITION ARE INVERT IN FUNCTION RECOLOUR
 
-as.numeric(position_ranking[2,]["Total"])
 # finally put all the graphs together
 vis <- stats_descripter + venue_plot + team_player_plot_multi + avg_games_plot
-
-layout <- c(
-  area(t=1, l=1, b=2, r=6), #stats_descripter
-  area(t=2, l=1, b=3, r=6), #ladder_table
-  area(t=3, l=1, b=4, r=6),
-  area(t=4, l=1, b=5, r=6),
-  area(t=5, l=1, b=6, r=6)
-)
-
-testing <- stats_descripter + ladder_table + venue_plot + team_player_plot_multi + avg_games_plot + plot_layout(design = layout)
+s_plot + plot_layout(design = layout)
 testing + plot_annotation(title = paste0(selected_team, "'s ", selected_year, " season."))
 
 # add an annotation to the top of the plots
