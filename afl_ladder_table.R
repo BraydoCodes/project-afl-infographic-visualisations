@@ -5,6 +5,10 @@ library(dplyr)
 library(gt) # for table generation
 library(gtExtras)
 
+font_add_google("Libre Franklin")
+showtext_auto() 
+font_family <- "Libre Franklin"
+
 team_names <- c("Adelaide", "Brisbane", "Carlton", "Collingwood", "Essendon", "Fremantle", "Geelong", "Gold Coast",
                 "Greater Western Sydney", "Hawthorn", "Melbourne", "North Melbourne", "Port Adelaide", "Richmond", 
                 "St Kilda", "Sydney", "West Coast", "Western Bulldogs")
@@ -36,7 +40,9 @@ ladder_table <- ladder_for_year %>% mutate(colour = "", .before = Team) %>% gt()
   rows = (Team == selected_team),
   fill = "gold2"
 ) %>%
-  opt_table_font(size = 10) %>% data_color(columns = Team, target_columns = colour, palette = palette_order) %>% 
+  opt_table_font(font = c(
+    google_font(name = "Libre Franklin"),
+    default_fonts()), size = 10) %>% data_color(columns = Team, target_columns = colour, palette = palette_order) %>% 
   data_color(columns = Team, target_columns = Team, alpha = 0.2, autocolor_text = FALSE, palette = palette_order)  # to ensure it all fits
 
 ladder_table

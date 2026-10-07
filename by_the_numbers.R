@@ -17,16 +17,14 @@ library(ggicons)
 library(ggpattern)
 library(RColorBrewer) # for some of the palettes used
 library(patchwork) # for merging r studio graphs
-library(extrafont)
-loadfonts(device = "win")
+library(showtext)
 # the line below can be used to download ionicons (the icon service) used so that the icons package is aware of it
 # icons::download_ionicons()
 
-#systemfonts::system_fonts() # - uncomment to view all downloaded fonts
-#systemfonts::get_from_google_fonts("Carter One") # uncomment this to download the foot used in this project (it is a free google font)
-
 # SEE ISSUE #1 - issues with font [https://github.com/BraydoCodes/project-afl-infographic-visualisations/issues/1]
-font_family <- "Helvetica"
+font_add_google("Libre Franklin")
+showtext_auto() 
+font_family <- "Libre Franklin"
 
 # CHANGE YEAR AND TEAM YOU WANT TO SELECT - YEAR MUST BE BETWEEN 2012-CURRENT AND TEAM MUST BE THE LOCATION OF THE TEAM 
 selected_year = "2015" # this should be in a certain file that is referenced here
@@ -204,7 +202,7 @@ stat_comparison_plot <- function(d, stat, stat_name, inverse = FALSE){
          subtitle = paste0("Only the ", selected_year, " Home & Away season is included.")) + 
     geom_text(aes(x = factor(Year), y = Total + (Total * 0.1), label = Total), 
               size = 10,
-              fontface = "bold") + 
+              fontface = "bold", family = font_family) + 
     geom_col_pattern(
       pattern_alpha = 0.1,
       pattern_fill = adjust(d[1,]["Total"], d[2,]["Total"], 'pattern', inverse),
@@ -213,12 +211,13 @@ stat_comparison_plot <- function(d, stat, stat_name, inverse = FALSE){
       pattern_angle = 15
     ) + gghighlight(Year == selected_year) + scale_x_discrete() +
     scale_fill_manual(values = adjust(d[1,]["Total"], d[2,]["Total"], 'fill', inverse)) + theme_few() +
-    theme(plot.title = element_text(hjust = 0.5, size = 15, face = 'bold')) + guides(fill = "none") + 
+    theme(text = element_text(family = font_family),
+      plot.title = element_text(hjust = 0.5, size = 15, face = 'bold')) + guides(fill = "none") + 
     annotation_icon(icon = adjust(d[1,]["Total"], d[2,]["Total"], 'icon', inverse), x = selected_year , 
                     y = as.numeric(d[2,]["Total"]) / 2 + difference_to_unit(d[1,]["Total"], d[2,]["Total"]), size = 20) +
     annotate("text", x = selected_year, y = as.numeric(d[2,]["Total"]) / 2 - difference_to_unit(d[1,]["Total"], d[2,]["Total"]), 
              label = round(abs(as.numeric(d[2,]["Total"]) - as.numeric(d[1,]["Total"])),2), size = 15) + 
-    theme_minimal()
+    theme_minimal(base_family = font_family)
 }
 
 # combine only the win stat info and plot
@@ -236,6 +235,8 @@ p4 <- stat_comparison_plot(position_ranking, "Total", "Ladder Position at End of
 
 # seemingly cannot get the table to extend downwards
 ((p1 / p3) | (p2 / p4)) + ladder_table
+
+showtext_auto(FALSE) 
 
 # TODO 
 # LOSSES AND POSITION ARE INVERT IN FUNCTION RECOLOUR
