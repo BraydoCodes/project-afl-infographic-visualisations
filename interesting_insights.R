@@ -55,7 +55,7 @@ ranking_for_clubs_all <- table_for_clubs %>% arrange(-TotalPoints, -Percentage) 
   mutate(position = order(order(rank(TotalPoints, ties.method = "min"),decreasing = TRUE)))
 
 # ladder for target year
-target_year = 2025
+target_year = 2015
 ranking_for_clubs <- ranking_for_clubs_all %>% filter(Year == target_year)
 
 # previous year if applicable

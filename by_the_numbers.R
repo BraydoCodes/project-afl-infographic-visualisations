@@ -29,7 +29,7 @@ loadfonts(device = "win")
 font_family <- "Helvetica"
 
 # CHANGE YEAR AND TEAM YOU WANT TO SELECT - YEAR MUST BE BETWEEN 2012-CURRENT AND TEAM MUST BE THE LOCATION OF THE TEAM 
-selected_year = "2025"
+selected_year = "2015" # this should be in a certain file that is referenced here
 selected_team = "Brisbane" # could be interesting if each team has an associated colour
 
 round_graph_fill <- c("#774762FF", "#BA6E1DFF", "#D6BB3BFF", "#755028FF", "#F2DD78FF", "#205F4BFF", "#913914FF", 
@@ -160,7 +160,7 @@ key_comparison_ranking_longer <- key_comparison_ranking %>% pivot_longer(!Year, 
 
 num_of_stats <- 4
 
-adjust <- function(p1, p2, type){
+adjust <- function(p1, p2, type, inverse = FALSE){
   # MUST FOLLOW FORMAT (SIZE = 3): c(IMPROVEMENT_VALUE, DETERIORATION_VALUE, EQUAL_VALUE)
   option_icon <- c(icons::ionicons$"arrow-up-outline", icons::ionicons$"arrow-down-outline", icons::ionicons$"reorder-two-outline")
   option_pattern <- c('#639754', '#D61F1F', '#E8BF0F')
@@ -168,6 +168,13 @@ adjust <- function(p1, p2, type){
   df <- data.frame(option_icon, option_pattern, option_fill)
   type_index <- which(c('icon', 'pattern','fill') == type)
   filt_df <- df[,type_index]
+  
+  # flips variables if inverse, do not do this with the icon however
+  if(inverse == TRUE && type_index != 1){
+    temp_var = p1
+    p1 = p2
+    p2 = temp_var
+  }
   
   if(p1 < p2){
     filt_df[1]
@@ -180,33 +187,38 @@ adjust <- function(p1, p2, type){
 
 # HELPER FUNCTION BASED ON DIFFERENCE, USED WHEN A DETERMINED DIRECTION IS REQUIRE TO MOVE OBJECT
 difference_to_unit <- function(num1, num2){
-  as.numeric((num2 - num1)/abs(num2 - num1) * (abs(num1) / 15))
+  if(num1 - num2 != 0){ # we have to check this to ensure we do not divide by 0
+    as.numeric((num2 - num1)/abs(num2 - num1) * (abs(num1) / 15))
+  }
+  else {
+    0
+  }
 }
 
 # FUNCTION TO PLOT A COMPARISON BETWEEN THE CURRENT AND PREVIOUS YEAR FOR A STAT, A FUNCTION IS USED DYNAMICALLY
 # USES ADJUST FUNCTION AND DIFFERENCE TO UNIT FUNCTION
-stat_comparison_plot <- function(d, stat, stat_name){
+stat_comparison_plot <- function(d, stat, stat_name, inverse = FALSE){
   ggplot(d, aes(x = factor(Year), y = Total, fill = c("gray"))) +
-    labs(x = paste0(stat, ' in Year'), y = 'Total', 
+    labs(x = 'Year', y = 'Total', 
          title = toupper(paste0(selected_team, "'s ", selected_year, " vs ", previous_year, " on ", stat_name)),
-         subtitle = paste0("Only the ", selected_year, " is included.")) + 
+         subtitle = paste0("Only the ", selected_year, " Home & Away season is included.")) + 
     geom_text(aes(x = factor(Year), y = Total + (Total * 0.1), label = Total), 
               size = 10,
               fontface = "bold") + 
     geom_col_pattern(
       pattern_alpha = 0.1,
-      pattern_fill = adjust(d[1,]["Total"], d[2,]["Total"], 'pattern'),
-      pattern_colour  = adjust(d[1,]["Total"], d[2,]["Total"], 'pattern'),
+      pattern_fill = adjust(d[1,]["Total"], d[2,]["Total"], 'pattern', inverse),
+      pattern_colour  = adjust(d[1,]["Total"], d[2,]["Total"], 'pattern', inverse),
       pattern_size = 1,
       pattern_angle = 15
     ) + gghighlight(Year == selected_year) + scale_x_discrete() +
-    scale_fill_manual(values = adjust(d[1,]["Total"], d[2,]["Total"], 'fill')) + theme_few() +
+    scale_fill_manual(values = adjust(d[1,]["Total"], d[2,]["Total"], 'fill', inverse)) + theme_few() +
     theme(plot.title = element_text(hjust = 0.5, size = 15, face = 'bold')) + guides(fill = "none") + 
-    annotation_icon(icon = adjust(d[1,]["Total"], d[2,]["Total"], 'icon'), x = selected_year , 
+    annotation_icon(icon = adjust(d[1,]["Total"], d[2,]["Total"], 'icon', inverse), x = selected_year , 
                     y = as.numeric(d[2,]["Total"]) / 2 + difference_to_unit(d[1,]["Total"], d[2,]["Total"]), size = 20) +
     annotate("text", x = selected_year, y = as.numeric(d[2,]["Total"]) / 2 - difference_to_unit(d[1,]["Total"], d[2,]["Total"]), 
-             label = abs(as.numeric(d[2,]["Total"]) - as.numeric(d[1,]["Total"])), size = 15) + 
-    theme_minimal(base_family = font_family)
+             label = round(abs(as.numeric(d[2,]["Total"]) - as.numeric(d[1,]["Total"])),2), size = 15) + 
+    theme_minimal()
 }
 
 # combine only the win stat info and plot
@@ -216,14 +228,20 @@ p1 <- stat_comparison_plot(win_ranking, "Total", "Number of Wins")
 perc_ranking <- rbind(key_comparison_ranking_longer[3,], key_comparison_ranking_longer[(3 + num_of_stats),])
 p2 <- stat_comparison_plot(perc_ranking, "Total", "Percentage at End of Season")
 
-p1 + p2
+loss_ranking <- rbind(key_comparison_ranking_longer[2,], key_comparison_ranking_longer[(2 + num_of_stats),])
+p3 <- stat_comparison_plot(loss_ranking, "Total", "Number of Losses", TRUE)
+
+position_ranking <- rbind(key_comparison_ranking_longer[4,], key_comparison_ranking_longer[(4 + num_of_stats),])
+p4 <- stat_comparison_plot(position_ranking, "Total", "Ladder Position at End of Season", TRUE)
+
+# seemingly cannot get the table to extend downwards
+((p1 / p3) | (p2 / p4)) + ladder_table
+
 # TODO 
 # LOSSES AND POSITION ARE INVERT IN FUNCTION RECOLOUR
 
 # finally put all the graphs together
 vis <- stats_descripter + venue_plot + team_player_plot_multi + avg_games_plot
-s_plot + plot_layout(design = layout)
-testing + plot_annotation(title = paste0(selected_team, "'s ", selected_year, " season."))
 
 # add an annotation to the top of the plots
 vis_location <- "current_vis_year_team.png"
