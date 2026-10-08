@@ -7,44 +7,19 @@ convert_goal_points_to_number <- function(x){
   return(x %/% 1 * 6 + x %% 1 * 10)
 }
 
-# packages required
-library(tidyverse)
-library(ggtext)
-library(ggplot2)
-library(gghighlight)
-library(ggthemes)
-library(ggicons)
-library(ggpattern)
-library(RColorBrewer) # for some of the palettes used
-library(patchwork) # for merging r studio graphs
-library(showtext)
-# the line below can be used to download ionicons (the icon service) used so that the icons package is aware of it
-# icons::download_ionicons()
-
-# SEE ISSUE #1 - issues with font [https://github.com/BraydoCodes/project-afl-infographic-visualisations/issues/1]
-font_add_google("Libre Franklin")
-showtext_auto() 
-font_family <- "Libre Franklin"
-
-# CHANGE YEAR AND TEAM YOU WANT TO SELECT - YEAR MUST BE BETWEEN 2012-CURRENT AND TEAM MUST BE THE LOCATION OF THE TEAM 
-selected_year = "2015" # this should be in a certain file that is referenced here
-selected_team = "Brisbane" # could be interesting if each team has an associated colour
-
 round_graph_fill <- c("#774762FF", "#BA6E1DFF", "#D6BB3BFF", "#755028FF", "#F2DD78FF", "#205F4BFF", "#913914FF", 
                       "#585854FF", "#F0A430FF", "#768048FF", "#800000FF", "#1B3A54FF", "#774762FF", "#BA6E1DFF", 
                       "#D6BB3BFF", "#755028FF", "#F2DD78FF", "#205F4BFF", "#913914FF", "#585854FF", "#F0A430FF", 
                       "#768048FF", "#800000FF", "#1B3A54FF", "#774762FF", "#BA6E1DFF", "#D6BB3BFF", "#755028FF")
 
 # use the stats table that lists every player that has played an afl game since 2012
-stats_data <- read.csv("./stats.csv")
-
-yearly_team_stats <- stats_data %>% filter(Year == selected_year)
+yearly_team_stats <- stats_data %>% dplyr::filter(Year == selected_year)
 
 # count competition team number - we do this because teams are likely to be added
 competition_team_numbers <- unique(yearly_team_stats$Team)
 
 # filter down stats table
-stats_for_team <- yearly_team_stats %>% filter(Team == selected_team) 
+stats_for_team <- yearly_team_stats %>% dplyr::filter(Team == selected_team) 
 
 # keep the order preserved for later
 round_order <- unique(stats_for_team$Round)
@@ -70,26 +45,28 @@ avg_games_plot <- ggplot(avg_games_player, aes(x = Round, y = Avg_Experience, fi
                 ymin = 0, ymax = highest_height),
             fill = "red", alpha = 0.02) +
   annotate("text", x= max_diff_agp, y=highest_height, label="Largest gap in experience", 
-           vjust=-highest_height * overlap_perc, size=2)
+           vjust=-highest_height * 0.01, size=2)
+
+avg_games_plot
 
 # find the number of players that played a game that year
 unique_players <- n_distinct(stats_for_team$PlayerName)
 avg_competition_unique_players <- floor(n_distinct(yearly_team_stats$PlayerName) / length(competition_team_numbers))
 
 # find players who played all game time
-games_player_all_time <- stats_for_team %>% filter(X.Played == 100)
+games_player_all_time <- stats_for_team %>% dplyr::filter(X.Played == 100)
 num_of_gpat <- nrow(games_player_all_time)
 
 ## competition average
-avg_all_games_played_per_team <- yearly_team_stats %>% filter(X.Played == 100) %>% group_by(Team) %>% summarise(total_all_played = n())
+avg_all_games_played_per_team <- yearly_team_stats %>% dplyr::filter(X.Played == 100) %>% group_by(Team) %>% summarise(total_all_played = n())
 avg_one <- mean(avg_all_games_played_per_team$total_all_played)
 
 # keep only the information from the player that had the most disposals in each round
-highest_possession_getters <- stats_for_team %>% group_by(Round) %>% filter(Disposals == max(Disposals))
+highest_possession_getters <- stats_for_team %>% group_by(Round) %>% dplyr::filter(Disposals == max(Disposals))
 num_of_hpg <- n_distinct(highest_possession_getters$PlayerId)
 
 # competition average most disposals
-all_highest_possession_getters <- yearly_team_stats %>% group_by(Team, Round) %>% filter(Disposals == max(Disposals))
+all_highest_possession_getters <- yearly_team_stats %>% group_by(Team, Round) %>% dplyr::filter(Disposals == max(Disposals))
 average_hpg <- n_distinct(all_highest_possession_getters$PlayerId) / length(competition_team_numbers)
 
 # create the dataframe , this solution right now is quite volatile
@@ -113,8 +90,7 @@ team_player_plot_multi <- ggplot(team_player_stats, aes(x = team, y = value, fil
 
 ###### LADDER
 # This next section focuses on the success of the team
-games_data <- read.csv("./games.csv")
-all_games_year <- games_data %>% filter(Year==selected_year)
+all_games_year <- games_data %>% dplyr::filter(Year==selected_year)
 
 ## setting to negative 1 to remove unneeded rows in cleanup
 all_games_year$score <- -1
@@ -151,8 +127,8 @@ stats_descripter <- ggplot() + theme_void() + theme(panel.background = element_r
   annotate("text", x = 0, y = 22.5, label="") + annotate("text", x = 12, y = 27, label = "")
 
 # small graph to have alongside the original ladder table
-past_comparison_of_ranking <- rbind(previous_ranking_for_clubs %>% filter(Team == selected_team),
-                                    ranking_for_clubs %>% filter(Team == selected_team))
+past_comparison_of_ranking <- rbind(previous_ranking_for_clubs %>% dplyr::filter(Team == selected_team),
+                                    ranking_for_clubs %>% dplyr::filter(Team == selected_team))
 key_comparison_ranking <- past_comparison_of_ranking %>% select(c('Year', 'Wins', "Loses", 'Percentage', 'position'))
 key_comparison_ranking_longer <- key_comparison_ranking %>% pivot_longer(!Year, names_to = 'Stat', values_to = 'Total')
 
@@ -196,6 +172,8 @@ difference_to_unit <- function(num1, num2){
 # FUNCTION TO PLOT A COMPARISON BETWEEN THE CURRENT AND PREVIOUS YEAR FOR A STAT, A FUNCTION IS USED DYNAMICALLY
 # USES ADJUST FUNCTION AND DIFFERENCE TO UNIT FUNCTION
 stat_comparison_plot <- function(d, stat, stat_name, inverse = FALSE){
+  print(factor(d$Year))
+  print(selected_year)
   ggplot(d, aes(x = factor(Year), y = Total, fill = c("gray"))) +
     labs(x = 'Year', y = 'Total', 
          title = toupper(paste0(selected_team, "'s ", selected_year, " vs ", previous_year, " on ", stat_name)),
@@ -213,9 +191,9 @@ stat_comparison_plot <- function(d, stat, stat_name, inverse = FALSE){
     scale_fill_manual(values = adjust(d[1,]["Total"], d[2,]["Total"], 'fill', inverse)) + theme_few() +
     theme(text = element_text(family = font_family),
       plot.title = element_text(hjust = 0.5, size = 15, face = 'bold')) + guides(fill = "none") + 
-    annotation_icon(icon = adjust(d[1,]["Total"], d[2,]["Total"], 'icon', inverse), x = selected_year , 
+    annotation_icon(icon = adjust(d[1,]["Total"], d[2,]["Total"], 'icon', inverse), x = factor(selected_year) , 
                     y = as.numeric(d[2,]["Total"]) / 2 + difference_to_unit(d[1,]["Total"], d[2,]["Total"]), size = 20) +
-    annotate("text", x = selected_year, y = as.numeric(d[2,]["Total"]) / 2 - difference_to_unit(d[1,]["Total"], d[2,]["Total"]), 
+    annotate("text", x = factor(selected_year), y = as.numeric(d[2,]["Total"]) / 2 - difference_to_unit(d[1,]["Total"], d[2,]["Total"]), 
              label = round(abs(as.numeric(d[2,]["Total"]) - as.numeric(d[1,]["Total"])),2), size = 15) + 
     theme_minimal(base_family = font_family)
 }
@@ -223,6 +201,7 @@ stat_comparison_plot <- function(d, stat, stat_name, inverse = FALSE){
 # combine only the win stat info and plot
 win_ranking <- rbind(key_comparison_ranking_longer[1,], key_comparison_ranking_longer[(1 + num_of_stats),])
 p1 <- stat_comparison_plot(win_ranking, "Total", "Number of Wins")
+
 # combine only the percentage stat info and plot
 perc_ranking <- rbind(key_comparison_ranking_longer[3,], key_comparison_ranking_longer[(3 + num_of_stats),])
 p2 <- stat_comparison_plot(perc_ranking, "Total", "Percentage at End of Season")
@@ -234,7 +213,7 @@ position_ranking <- rbind(key_comparison_ranking_longer[4,], key_comparison_rank
 p4 <- stat_comparison_plot(position_ranking, "Total", "Ladder Position at End of Season", TRUE)
 
 # seemingly cannot get the table to extend downwards
-((p1 / p3) | (p2 / p4)) + ladder_table
+print(((p1 / p3) | (p2 / p4)) + ladder_table)
 
 showtext_auto(FALSE) 
 
@@ -242,8 +221,8 @@ showtext_auto(FALSE)
 # LOSSES AND POSITION ARE INVERT IN FUNCTION RECOLOUR
 
 # finally put all the graphs together
-vis <- stats_descripter + venue_plot + team_player_plot_multi + avg_games_plot
+# vis <- stats_descripter + venue_plot + team_player_plot_multi + avg_games_plot
 
 # add an annotation to the top of the plots
-vis_location <- "current_vis_year_team.png"
-test <- ggsave(filename = vis_location, plot = vis, width = 50, height = 50/(1920/1080), units = "cm") # this currently assumes you have a 1980 by 1080 monitor as it resizes to 1920 by 1080 p
+# vis_location <- "current_vis_year_team.png"
+# test <- ggsave(filename = vis_location, plot = vis, width = 50, height = 50/(1920/1080), units = "cm") # this currently assumes you have a 1980 by 1080 monitor as it resizes to 1920 by 1080 p

@@ -1,20 +1,9 @@
-# packages required
-library(dplyr)
-
-setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) # this is to ensure that relative path works
-
-# uncomment when necessary
-games_data <- read.csv("./games.csv")
-# players_data <- read.csv("./players.csv")
-# stats_data <- read.csv("./stats.csv")
-
-
 # this is building the ladder - the official system that ranks the teams position every year
 ladder_games_dataframe <- data.frame(Year = games_data$Year, HomeTeam = games_data$HomeTeam, AwayTeam = games_data$AwayTeam, HomeTeamScore = games_data$HomeTeamScore, AwayTeamScore = games_data$AwayTeamScore, Round = games_data$Round)
 
 # disregard finals
 finals_names <- c("Qualifying Final", "Elimination Final", "Preliminary Final", "Semi Final", "Grand Final")
-ladder_games_dataframe <- ladder_games_dataframe %>% filter(! Round %in% finals_names)
+ladder_games_dataframe <- ladder_games_dataframe %>% dplyr::filter(! Round %in% finals_names)
 
 # remove round as it is unneeded
 ladder_games_clean <- ladder_games_dataframe %>% select(-"Round")
@@ -54,10 +43,8 @@ table_for_clubs <- all_scores_in_year %>% group_by(Team, Year) %>% summarise(Rou
 ranking_for_clubs_all <- table_for_clubs %>% arrange(-TotalPoints, -Percentage) %>% group_by(Year) %>%
   mutate(position = order(order(rank(TotalPoints, ties.method = "min"),decreasing = TRUE)))
 
-# ladder for target year
-target_year = 2015
-ranking_for_clubs <- ranking_for_clubs_all %>% filter(Year == target_year)
+# ladder for selected year, change in setup.R
+ranking_for_clubs <- ranking_for_clubs_all %>% dplyr::filter(Year == selected_year)
 
 # previous year if applicable
-previous_year <- target_year - 1
-previous_ranking_for_clubs <- ranking_for_clubs_all %>% filter(Year == previous_year)
+previous_ranking_for_clubs <- ranking_for_clubs_all %>% dplyr::filter(Year == previous_year)
