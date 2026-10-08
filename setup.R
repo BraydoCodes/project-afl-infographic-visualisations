@@ -43,8 +43,12 @@ selected_team <- "Brisbane"
 
 previous_year <- selected_year - 1
 
+
 # do not proceed if invalid parameters
 stopifnot((selected_team %in% team_names && selected_year >= 2012 && selected_year <= 2025))
+# keep the order preserved for later
+current_year_format <- stats_data %>% dplyr::filter(Year == selected_year)
+round_order <- unique(games_data$Round)
 
 # SEE ISSUE #1 - issues with font [https://github.com/BraydoCodes/project-afl-infographic-visualisations/issues/1]
 font_family <- "Carter One"

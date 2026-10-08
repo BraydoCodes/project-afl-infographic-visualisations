@@ -21,12 +21,11 @@ competition_team_numbers <- unique(yearly_team_stats$Team)
 # filter down stats table
 stats_for_team <- yearly_team_stats %>% dplyr::filter(Team == selected_team) 
 
-# keep the order preserved for later
-round_order <- unique(stats_for_team$Round)
 
 # find the experience in the team for each round of the year
 avg_games_player <- stats_for_team %>% group_by(Round) %>% summarise(Avg_Experience = mean(GameNumber), Total_Experience = sum(GameNumber))
-avg_games_player <- avg_games_player %>% mutate(Round = factor(Round, labels = round_order))
+# avg_games_player <- avg_games_player %>% mutate(Round = factor(Round, labels = round_order))
+# fix this
 
 # find the max difference, used to annotate
 max_diff_agp <- which(diff(avg_games_player$Total_Experience) == max(diff(avg_games_player$Total_Experience)))
@@ -172,14 +171,12 @@ difference_to_unit <- function(num1, num2){
 # FUNCTION TO PLOT A COMPARISON BETWEEN THE CURRENT AND PREVIOUS YEAR FOR A STAT, A FUNCTION IS USED DYNAMICALLY
 # USES ADJUST FUNCTION AND DIFFERENCE TO UNIT FUNCTION
 stat_comparison_plot <- function(d, stat, stat_name, inverse = FALSE){
-  print(factor(d$Year))
-  print(selected_year)
   ggplot(d, aes(x = factor(Year), y = Total, fill = c("gray"))) +
     labs(x = 'Year', y = 'Total', 
          title = toupper(paste0(selected_team, "'s ", selected_year, " vs ", previous_year, " on ", stat_name)),
          subtitle = paste0("Only the ", selected_year, " Home & Away season is included.")) + 
     geom_text(aes(x = factor(Year), y = Total + (Total * 0.1), label = Total), 
-              size = 10,
+              size = 5,
               fontface = "bold", family = font_family) + 
     geom_col_pattern(
       pattern_alpha = 0.1,
@@ -192,9 +189,9 @@ stat_comparison_plot <- function(d, stat, stat_name, inverse = FALSE){
     theme(text = element_text(family = font_family),
       plot.title = element_text(hjust = 0.5, size = 15, face = 'bold')) + guides(fill = "none") + 
     annotation_icon(icon = adjust(d[1,]["Total"], d[2,]["Total"], 'icon', inverse), x = factor(selected_year) , 
-                    y = as.numeric(d[2,]["Total"]) / 2 + difference_to_unit(d[1,]["Total"], d[2,]["Total"]), size = 20) +
+                    y = as.numeric(d[2,]["Total"]) / 2 + difference_to_unit(d[1,]["Total"], d[2,]["Total"]), size = 15) +
     annotate("text", x = factor(selected_year), y = as.numeric(d[2,]["Total"]) / 2 - difference_to_unit(d[1,]["Total"], d[2,]["Total"]), 
-             label = round(abs(as.numeric(d[2,]["Total"]) - as.numeric(d[1,]["Total"])),2), size = 15) + 
+             label = round(abs(as.numeric(d[2,]["Total"]) - as.numeric(d[1,]["Total"])),2), size = 10) + 
     theme_minimal(base_family = font_family)
 }
 
@@ -213,10 +210,20 @@ position_ranking <- rbind(key_comparison_ranking_longer[4,], key_comparison_rank
 p4 <- stat_comparison_plot(position_ranking, "Total", "Ladder Position at End of Season", TRUE)
 
 # seemingly cannot get the table to extend downwards
-print(((p1 / p3) | (p2 / p4)) + ladder_table)
 
 showtext_auto(FALSE) 
 
+# GRAPH based on points diff progression throughout the season
+progression_plot <- ggplot(points_progression) +
+  geom_line(aes(x = factor(Round, levels = round_order), y = runningtotal, group = Team, colour = Team)) + 
+  labs(x = 'Round', y = 'Scored For / Scored Against', 
+       title = toupper(paste0(selected_team, "'s ", selected_year, " on percentage." )),
+       subtitle = paste0("Only the ", selected_year, " Home & Away season is included.")) +
+  gghighlight(Team == selected_team) + geom_label(aes(x = factor(Round, levels = round_order), y = runningtotal, label = runningtotal),
+                                                      hjust = 0, size = 3.2) +
+  theme_minimal(base_family = font_family)
+
+print((((p1 / p3) | (p2 / p4)) + ladder_table) / progression_plot)
 # TODO 
 # LOSSES AND POSITION ARE INVERT IN FUNCTION RECOLOUR
 
