@@ -7,6 +7,7 @@ library(gghighlight)
 library(ggthemes)
 library(ggicons)
 library(ggpattern)
+library(ggrepel)
 library(RColorBrewer) # for some of the palettes used
 library(patchwork) # for merging r studio graphs
 library(gt) # for table generation

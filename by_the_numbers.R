@@ -213,15 +213,21 @@ p4 <- stat_comparison_plot(position_ranking, "Total", "Ladder Position at End of
 
 showtext_auto(FALSE) 
 
+points_progression$diff_fill = case_when(
+  points_progression$diff > 0 ~ "0",
+  points_progression$diff == 0 ~ "2",
+  points_progression$diff < 0 ~ "1"
+)
+
 # GRAPH based on points diff progression throughout the season
 progression_plot <- ggplot(points_progression) +
-  geom_line(aes(x = factor(Round, levels = round_order), y = runningtotal, group = Team, colour = Team)) + 
-  labs(x = 'Round', y = 'Scored For / Scored Against', 
-       title = toupper(paste0(selected_team, "'s ", selected_year, " on percentage." )),
+  geom_line(aes(x = factor(Round, levels = round_order), y = runningtotal, group = Team)) + 
+  labs(x = 'Round', y = 'Scored For - Scored Against', 
+       title = toupper(paste0(selected_team, "'s year ", selected_year, " on percentage." )),
        subtitle = paste0("Only the ", selected_year, " Home & Away season is included.")) +
-  gghighlight(Team == selected_team) + geom_label(aes(x = factor(Round, levels = round_order), y = runningtotal, label = runningtotal),
-                                                      hjust = 0, size = 3.2) +
-  theme_minimal(base_family = font_family)
+  gghighlight(Team == selected_team, use_direct_label = FALSE) + geom_label(aes(x = factor(Round, levels = round_order), y = runningtotal, label = runningtotal, fill=diff_fill),
+                                                      size = 3.2) + scale_fill_manual(values = c("#639754", "#D61F1F", "#FFD301"))+
+  theme_minimal(base_family = font_family) + theme(legend.position = "none")
 
 print((((p1 / p3) | (p2 / p4)) + ladder_table) / progression_plot)
 # TODO 
