@@ -24,12 +24,17 @@ stats_for_team <- yearly_team_stats %>% dplyr::filter(Team == selected_team)
 
 # find the experience in the team for each round of the year
 avg_games_player <- stats_for_team %>% group_by(Round) %>% summarise(Avg_Experience = mean(GameNumber), Total_Experience = sum(GameNumber))
-# avg_games_player <- avg_games_player %>% mutate(Round = factor(Round, labels = round_order))
-# fix this
+
+# to order, we must filter out the rounds the team did not play in the year
+round_order_team <- data.frame(Round = round_order) %>% filter(Round %in% avg_games_player$Round)
+avg_games_player <- avg_games_player %>% mutate(Round = factor(Round, labels = round_order_team[,1]))
+
 
 # find the max difference, used to annotate
-max_diff_agp <- which(diff(avg_games_player$Total_Experience) == max(diff(avg_games_player$Total_Experience)))
+max_diff_agp <- which(abs(diff(avg_games_player$Total_Experience)) == max(abs(diff((avg_games_player$Total_Experience)))))
 highest_height <- max(as.numeric(avg_games_player[max_diff_agp,]["Avg_Experience"]), as.numeric(avg_games_player[max_diff_agp+1,]["Avg_Experience"]))
+
+
 
 # plot the avg games per player onto a bar plot
 avg_games_plot <- ggplot(avg_games_player, aes(x = Round, y = Avg_Experience, fill = Round)) + geom_col( ) +
