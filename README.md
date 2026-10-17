@@ -12,7 +12,7 @@ There are plans to turn this into a R Shiny Application, however editting your `
 ## CURRENT TODO LIST
 [x] -  Ladder position and facts visualisation
 
-[o] - Team player insights for a given year
+[o] - Team player insights for a given year (both team and individual)
 
 [ ] - Select a player and the stats of the player are shown, highlight their biggests strength and most suprising statistic/s
 
