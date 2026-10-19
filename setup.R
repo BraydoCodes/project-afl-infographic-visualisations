@@ -58,4 +58,5 @@ showtext_auto()
 
 source("interesting_insights.R")
 source("afl_ladder_table.R")
-source("by_the_numbers.R")
+source("stats_for_ladder.R")
+source("stats_for_player_in_team.R")
