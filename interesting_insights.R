@@ -1,12 +1,16 @@
+calculate_percentage <- function(sFor, sAgainst) {
+  return(round(sFor/aAgainst * 100),1)
+}
+
 # this is building the ladder - the official system that ranks the teams position every year
-ladder_games_dataframe <- data.frame(Year = games_data$Year, HomeTeam = games_data$HomeTeam, AwayTeam = games_data$AwayTeam, HomeTeamScore = games_data$HomeTeamScore, AwayTeamScore = games_data$AwayTeamScore, Round = games_data$Round)
+ladder_games_df <- data.frame(Year = games_data$Year, HomeTeam = games_data$HomeTeam, AwayTeam = games_data$AwayTeam, HomeTeamScore = games_data$HomeTeamScore, AwayTeamScore = games_data$AwayTeamScore, Round = games_data$Round)
 
 # disregard finals
-finals_names <- c("Qualifying Final", "Elimination Final", "Preliminary Final", "Semi Final", "Grand Final")
-ladder_games_dataframe <- ladder_games_dataframe %>% dplyr::filter(! Round %in% finals_names)
+finals_names <- c("Qualifying Final", "Elimination Final", "Semi Final", "Preliminary Final", "Grand Final")
+ladder_games_df <- ladder_games_df %>% dplyr::filter(!Round %in% finals_names)
 
 # remove round as it is unneeded  - nope
-ladder_games_clean <- ladder_games_dataframe %>% dplyr::filter(Year == selected_year | Year == previous_year)
+ladder_games_clean <- ladder_games_df %>% dplyr::filter(Year == selected_year | Year == previous_year)
 
 # remove away team information
 home_group_games <- ladder_games_clean %>% select(-"AwayTeam")
@@ -19,7 +23,7 @@ colnames(away_group_games) <- c("Year", "Team", "ScoreAgainst", "ScoreFor", "Rou
 
 all_scores_overall <- rbind(home_group_games, away_group_games)
 
-all_scores_overall$Point <- ifelse(
+all_scores_overall$Points <- ifelse(
   ( 
     (all_scores_overall$ScoreFor > all_scores_overall$ScoreAgainst)
   ),
@@ -33,11 +37,11 @@ all_scores_overall$Point <- ifelse(
   ))
 
 table_for_clubs <- all_scores_overall %>% select(-"Round") %>% group_by(Team, Year) %>% summarise(RoundPlayed = n(),
-                                                                             Wins = sum(Point == 4),
-                                                                             Draws = sum(Point == 2),
-                                                                             Loses = sum(Point == 0),
-                                                                             TotalPoints = sum(Point), 
-                                                                             Percentage = round(sum(ScoreFor)/sum(ScoreAgainst) * 100, 1))
+                                                                             Wins = sum(Points == 4),
+                                                                             Draws = sum(Points == 2),
+                                                                             Loses = sum(Points == 0),
+                                                                             TotalPoints = sum(Points), 
+                                                                             Percentage = calculate_percentage(sum(ScoreFor), sum(ScoreAgainst)))
 
 # rank position for each year
 ranking_for_clubs_all <- table_for_clubs %>% arrange(-TotalPoints, -Percentage) %>% group_by(Year) %>%
