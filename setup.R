@@ -39,8 +39,8 @@ colnames(team_df_ref) <- c("Team", "Colours")
 
 # SELECTED TEAM AND YEAR
 # CHANGE YEAR AND TEAM YOU WANT TO SELECT - YEAR MUST BE BETWEEN 2012-CURRENT AND TEAM MUST BE THE LOCATION OF THE TEAM 
-selected_year <- 2015
-selected_team <- "Brisbane"
+selected_year <- 2025
+selected_team <- "St Kilda"
 
 previous_year <- selected_year - 1
 
@@ -49,7 +49,8 @@ previous_year <- selected_year - 1
 stopifnot((selected_team %in% team_names && selected_year >= 2012 && selected_year <= 2025))
 # keep the order preserved for later
 current_year_format <- stats_data %>% dplyr::filter(Year == selected_year)
-round_order <- unique(games_data$Round)
+year_game_data <- games_data %>% dplyr::filter(Year == selected_year)
+round_order <- unique(year_game_data$Round)
 
 # SEE ISSUE #1 - issues with font [https://github.com/BraydoCodes/project-afl-infographic-visualisations/issues/1]
 font_family <- "Carter One"

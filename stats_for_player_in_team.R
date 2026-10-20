@@ -82,3 +82,5 @@ team_player_plot_multi <- ggplot(team_player_stats, aes(x = team, y = value, fil
   geom_col( ) + theme_few() +
   theme(plot.title = element_text(hjust = 0.5, size = 15, face = 'bold'), axis.title.x = element_blank()) + 
   facet_wrap(~stat)
+
+team_player_plot_multi

@@ -41,7 +41,7 @@ table_for_clubs <- all_scores_overall %>% select(-"Round") %>% group_by(Team, Ye
                                                                              Draws = sum(Points == 2),
                                                                              Loses = sum(Points == 0),
                                                                              TotalPoints = sum(Points), 
-                                                                             Percentage = calculate_percentage(sum(ScoreFor), sum(ScoreAgainst)))
+                                                                             Percentage = round(sum(ScoreFor)/sum(ScoreAgainst) * 100, 1))
 
 # rank position for each year
 ranking_for_clubs_all <- table_for_clubs %>% arrange(-TotalPoints, -Percentage) %>% group_by(Year) %>%
