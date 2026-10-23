@@ -69,7 +69,7 @@ if (current_mode == mode_options[1]){
   source("interesting_insights.R")
   source("afl_ladder_table.R")
   source("stats_for_ladder.R")
-  source("stats_for_player_in_team.R")
 } else if(current_mode == mode_options[2] ){
   # TODO write and attach scripts for this mode here
+  source("team_info_visualisation.R")
 }
