@@ -39,32 +39,35 @@ showtext_auto()
 mode_options <- c("YearSummary", "TeamSummary")
 
 # change this to change the resulting output type from available options in mode_options
-current_mode <- "YearSummary"
+current_mode <- "TeamSummary"
 stopifnot(current_mode %in% mode_options)
 
-if (current_mode == mode_options[1]){
-  # team name and colour references
-  team_names <- c("Adelaide", "Brisbane", "Carlton", "Collingwood", "Essendon", "Fremantle", "Geelong", "Gold Coast",
+# SELECTED TEAM AND YEAR
+# CHANGE YEAR AND TEAM YOU WANT TO SELECT - YEAR MUST BE BETWEEN 2012-CURRENT AND TEAM MUST BE THE LOCATION OF THE TEAM 
+selected_year <- 2025
+selected_team <- "St Kilda"
+  
+previous_year <- selected_year - 1
+
+# team name and colour references
+team_names <- c("Adelaide", "Brisbane", "Carlton", "Collingwood", "Essendon", "Fremantle", "Geelong", "Gold Coast",
                   "Greater Western Sydney", "Hawthorn", "Melbourne", "North Melbourne", "Port Adelaide", "Richmond", 
                   "St Kilda", "Sydney", "West Coast", "Western Bulldogs")
+  
+# do not proceed if invalid parameters
+stopifnot((selected_team %in% team_names && selected_year >= 2012 && selected_year <= 2025))
+# keep the order preserved for later
+current_year_format <- stats_data %>% dplyr::filter(Year == selected_year)
+year_game_data <- games_data %>% dplyr::filter(Year == selected_year)
+round_order <- unique(year_game_data$Round)
+
+if (current_mode == mode_options[1]){
   team_colours <- c("#004B8D", "#A30046", "#031A29", "#000000", "#CC2031", "#2A0D54", "#002B5C", "#E02112", "#F47920",
                     "#4D2004", "#0F1131", "#1A3B8E", "#008AAB", "#FFD200", "#ED1B2F", "#E1251B", "#F2A900", "#20539D" )
   team_df_ref <- data.frame(team_names, team_colours)
   colnames(team_df_ref) <- c("Team", "Colours")
   
-  # SELECTED TEAM AND YEAR
-  # CHANGE YEAR AND TEAM YOU WANT TO SELECT - YEAR MUST BE BETWEEN 2012-CURRENT AND TEAM MUST BE THE LOCATION OF THE TEAM 
-  selected_year <- 2025
-  selected_team <- "St Kilda"
   
-  previous_year <- selected_year - 1
-  
-  # do not proceed if invalid parameters
-  stopifnot((selected_team %in% team_names && selected_year >= 2012 && selected_year <= 2025))
-  # keep the order preserved for later
-  current_year_format <- stats_data %>% dplyr::filter(Year == selected_year)
-  year_game_data <- games_data %>% dplyr::filter(Year == selected_year)
-  round_order <- unique(year_game_data$Round)
 
   source("interesting_insights.R")
   source("afl_ladder_table.R")
