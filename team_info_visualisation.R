@@ -76,11 +76,16 @@ team_player_plot <- ggplot(team_player_stats, aes(x=stat, y=value, fill=team)) +
   geom_bar(position = 'dodge', stat = 'identity') + scale_fill_manual(values = round_graph_fill) + 
   theme(plot.title = element_text(hjust = 0.5, size = 15, face = 'bold'), axis.title.x = element_blank()) 
 
+
+sub <- paste("The <strong>Number All Game Time</strong> refers to players who were on the ground for the entire duration of the game, without ever coming off for a break.<br> 
+                        <strong>Unique Highest Possession Getter</strong> is based on the unique diversity of players who had the most possession or disposals at the end of each game.<br>
+                        <strong>Unique Players</strong> refers to the number of players that took to the field in a given season.'")
 # spread version
-team_player_plot_multi <- ggplot(team_player_stats, aes(x = team, y = value, fill = value)) + 
-  labs(x = 'Statistic', y = 'Value', title = 'Number of in player stats for selected team & the competitions average') + 
+team_player_plot_multi <- ggplot(team_player_stats, aes(x = team, y = value, fill = team)) + 
+  labs(x = 'Statistic', y = 'Value', title = 'Number of in player stats for selected team & the competitions average',
+       subtitle = sub) + 
   geom_col( ) + theme_few() +
-  theme(plot.title = element_text(hjust = 0.5, size = 15, face = 'bold'), axis.title.x = element_blank()) + 
+  theme(plot.title = element_text(hjust = 0.5, size = 15, face = 'bold'), axis.title.x = element_blank(), plot.subtitle=element_markdown()) + 
   facet_wrap(~stat)
 
 team_player_plot_multi
