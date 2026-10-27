@@ -76,16 +76,31 @@ team_player_plot <- ggplot(team_player_stats, aes(x=stat, y=value, fill=team)) +
   geom_bar(position = 'dodge', stat = 'identity') + scale_fill_manual(values = round_graph_fill) + 
   theme(plot.title = element_text(hjust = 0.5, size = 15, face = 'bold'), axis.title.x = element_blank()) 
 
+compared_colours <- c("#999999", current_team_colour)
+
+
+differences <- function(tps_df){
+  sep_stat_additive <- nrow(tps_df) / 2
+  diff_vec <- c()
+  for(i in 1:sep_stat_additive){
+    diff_vec <- append(diff_vec, round(tps_df[i,]["value"] - tps_df[i + sep_stat_additive,]["value"], 1))
+  }
+  unlist(diff_vec)
+}
+v <- data.frame(team = selected_team, stat = unique(team_player_stats$stat), y = team_player_stats[1:3,]$value, Value = differences(team_player_stats))
+v$Value <- lapply(v$Value, function(x) sprintf("%+3.1f", x))
 
 sub <- paste("The <strong>Number All Game Time</strong> refers to players who were on the ground for the entire duration of the game, without ever coming off for a break.<br> 
                         <strong>Unique Highest Possession Getter</strong> is based on the unique diversity of players who had the most possession or disposals at the end of each game.<br>
-                        <strong>Unique Players</strong> refers to the number of players that took to the field in a given season.'")
+                        <strong>Unique Players</strong> refers to the number of players that took to the field in a given season.")
 # spread version
 team_player_plot_multi <- ggplot(team_player_stats, aes(x = team, y = value, fill = team)) + 
-  labs(x = 'Statistic', y = 'Value', title = 'Number of in player stats for selected team & the competitions average',
-       subtitle = sub) + 
-  geom_col( ) + theme_few() +
+  labs(x = 'Statistic', y = 'Number of Occurrences', title = 'Number of in player stats for selected team & the competitions average',
+       subtitle = sub, fill = "Team") + 
+  geom_col( ) + theme_few() + scale_fill_manual(values = compared_colours) +
   theme(plot.title = element_text(hjust = 0.5, size = 15, face = 'bold'), axis.title.x = element_blank(), plot.subtitle=element_markdown()) + 
-  facet_wrap(~stat)
+  facet_wrap(~stat) + geom_text(data = v, mapping = aes(x = 2, y = y, label = Value),
+    vjust = -0.5, fontface = "bold"
+  )
 
 team_player_plot_multi
