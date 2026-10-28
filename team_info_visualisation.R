@@ -28,11 +28,10 @@ highest_height <- max(as.numeric(avg_games_player[max_diff_agp,]["Avg_Experience
 
 
 # plot the avg games per player onto a bar plot
-avg_games_plot <- ggplot(avg_games_player, aes(x = Round, y = Avg_Experience, fill = Round)) + geom_col( ) +
+avg_games_plot <- ggplot(avg_games_player, aes(x = Round, y = Avg_Experience, fill = Avg_Experience)) + geom_col( ) +
   labs(y = "Average Experience",
        title = paste0(selected_team,"'s Average Experience in the team over the whole season in ", selected_year),
-       caption = "The AFL") + 
-  scale_fill_manual(values = round_graph_fill) + theme_classic() +
+       caption = "The AFL") + theme_classic() + scale_fill_gradientn(colours = c(current_team_colour, "grey10")) +
   theme(legend.position = "none", axis.text.x = element_text(angle = 45, hjust = 1),
         plot.title = element_text(hjust = 0.5, size = 15, face = 'bold'),
         plot.caption = element_text(color = "grey40", hjust = 0.5, size = 12, margin = margin(5, 0, 0, 0))) + 
@@ -70,15 +69,9 @@ team_player_stats <- data.frame(
   stat=rep(c('Number All Game Time', 'Unique Highest Possession Getters', 'Unique Players'), times = 2),
   value=c(num_of_gpat, num_of_hpg, unique_players, avg_one, average_hpg, avg_competition_unique_players))
 
-# all in one variation
-team_player_plot <- ggplot(team_player_stats, aes(x=stat, y=value, fill=team)) + 
-  labs(x = 'Statistic', y = 'Value', title = 'Number of in player stats for selected team & the competitions average') + 
-  geom_bar(position = 'dodge', stat = 'identity') + scale_fill_manual(values = round_graph_fill) + 
-  theme(plot.title = element_text(hjust = 0.5, size = 15, face = 'bold'), axis.title.x = element_blank()) 
-
 compared_colours <- c("#999999", current_team_colour)
 
-
+# finds the difference for two difference subjects
 differences <- function(tps_df){
   sep_stat_additive <- nrow(tps_df) / 2
   diff_vec <- c()
