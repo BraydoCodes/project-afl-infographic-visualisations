@@ -1,8 +1,3 @@
-round_graph_fill <- c("#774762FF", "#BA6E1DFF", "#D6BB3BFF", "#755028FF", "#F2DD78FF", "#205F4BFF", "#913914FF", 
-                      "#585854FF", "#F0A430FF", "#768048FF", "#800000FF", "#1B3A54FF", "#774762FF", "#BA6E1DFF", 
-                      "#D6BB3BFF", "#755028FF", "#F2DD78FF", "#205F4BFF", "#913914FF", "#585854FF", "#F0A430FF", 
-                      "#768048FF", "#800000FF", "#1B3A54FF", "#774762FF", "#BA6E1DFF", "#D6BB3BFF", "#755028FF")
-
 # use the stats table that lists every player that has played an afl game since 2012
 yearly_team_stats <- stats_data %>% dplyr::filter(Year == selected_year)
 
@@ -40,8 +35,6 @@ avg_games_plot <- ggplot(avg_games_player, aes(x = Round, y = Avg_Experience, fi
             fill = "red", alpha = 0.02) +
   annotate("text", x= max_diff_agp, y=highest_height, label="Largest gap in experience", 
            vjust=-highest_height * 0.01, size=2)
-
-avg_games_plot
 
 # find the number of players that played a game that year
 unique_players <- n_distinct(stats_for_team$PlayerName)
@@ -83,8 +76,8 @@ differences <- function(tps_df){
 v <- data.frame(team = selected_team, stat = unique(team_player_stats$stat), y = team_player_stats[1:3,]$value, Value = differences(team_player_stats))
 v$Value <- lapply(v$Value, function(x) sprintf("%+3.1f", x))
 
-sub <- paste("The <strong>Number All Game Time</strong> refers to players who were on the ground for the entire duration of the game, without ever coming off for a break.<br> 
-                        <strong>Unique Highest Possession Getter</strong> is based on the unique diversity of players who had the most possession or disposals at the end of each game.<br>
+sub <- paste("The <strong>Number All Game Time</strong> refers to players who were on the ground for the entire duration of the game, without <br>ever coming off for a break.<br> 
+                        <strong>Unique Highest Possession Getter</strong> is based on the unique diversity of players who had the most possession or <br>disposals at the end of each game.<br>
                         <strong>Unique Players</strong> refers to the number of players that took to the field in a given season.")
 # spread version
 team_player_plot_multi <- ggplot(team_player_stats, aes(x = team, y = value, fill = team)) + 
@@ -96,4 +89,5 @@ team_player_plot_multi <- ggplot(team_player_stats, aes(x = team, y = value, fil
     vjust = -0.5, fontface = "bold"
   )
 
-team_player_plot_multi
+team_info_vis <- avg_games_plot + team_player_plot_multi +
+  plot_annotation(title = paste0("Player review for the ", selected_team, "'s ", selected_year, " season."), theme = theme(plot.title = element_text(hjust = 0.5)))

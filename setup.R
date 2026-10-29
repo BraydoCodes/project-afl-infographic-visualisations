@@ -69,14 +69,13 @@ if (current_mode == mode_options[1]){
   team_df_ref <- data.frame(team_names, team_colours)
   colnames(team_df_ref) <- c("Team", "Colours")
   
-  
-
   source("interesting_insights.R")
   source("afl_ladder_table.R")
   source("stats_for_ladder.R")
+  
+  ladder_vis
 } else if(current_mode == mode_options[2] ){
-  # TODO write and attach scripts for this mode here
   source("team_info_visualisation.R")
   
-  team_player_plot_multi
+  team_info_vis
 }

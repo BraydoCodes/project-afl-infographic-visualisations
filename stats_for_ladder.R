@@ -149,4 +149,4 @@ progression_plot <- ggplot(points_progression) +
                                                       size = 3.2) + scale_fill_manual(values = c("#639754", "#D61F1F", "#FFD301"))+
   theme_minimal(base_family = font_family) + theme(legend.position = "none")
 
-print((((p1 / p3) | (p2 / p4)) + ladder_table) / progression_plot)
+ladder_vis <- (((p1 / p3) | (p2 / p4)) + ladder_table) / progression_plot
