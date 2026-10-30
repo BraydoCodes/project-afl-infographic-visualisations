@@ -110,7 +110,15 @@ yearly_specific_team_stats <- yearly_team_stats %>% select(all_of(full_stats_for
 st_yearly_stats <- yearly_specific_team_stats %>% filter(Team == selected_team)
 
 # full competition average
-c_yearly_stats <- yearly_specific_team_stats %>% group_by(Round) %>% summarise(across(all_of(paste("sum_", stats_for_show, sep="")), mean, .names = "average_{col}"))
+c_yearly_stats <- yearly_specific_team_stats %>% group_by(Round) %>% summarise(across(all_of(paste("sum_", stats_for_show, sep="")), mean, .names = "{col}")) %>% mutate(Team = "All Teams")
+
+# combine and pivot longer for graph
+combined_yearly_stats <- rbind(st_yearly_stats, c_yearly_stats) %>% pivot_longer(cols = starts_with("sum_"), names_to = "Statistic", values_to = "Total")
+
+# plot
+stats_for_the_year <- ggplot(combined_yearly_stats) + geom_line(aes(x = Round, y = Total,  group = Team, colour = Team)) +
+  scale_colour_manual(values = compared_colours) + theme_minimal() + facet_wrap(~Statistic)
+stats_for_the_year
 
 team_info_vis <- avg_games_plot + team_player_plot_multi +
   plot_annotation(title = paste0("Player review for the ", selected_team, "'s ", selected_year, " season."), theme = theme(plot.title = element_text(hjust = 0.5)))
