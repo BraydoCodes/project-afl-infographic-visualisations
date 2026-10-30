@@ -89,5 +89,28 @@ team_player_plot_multi <- ggplot(team_player_stats, aes(x = team, y = value, fil
     vjust = -0.5, fontface = "bold"
   )
 
+# this graph will showcase team stats to competition average for every round
+
+# compute all valid statistics that can be shown
+stats_row_names <- colnames(stats_for_team)
+
+# you could type out all columns that should be excluded as a stat, however I am just pointing a start and end index for ease
+start_index = 8
+end_index = 29
+valid_stats <- stats_row_names[start_index:end_index]
+
+# these are the selected stats you want in the visualisation
+stats_for_show <- c("Kicks", "Marks")
+# Fails early
+stopifnot(stats_for_show %in% valid_stats)
+full_stats_for_show <- c("Round", "Team", stats_for_show)
+yearly_specific_team_stats <- yearly_team_stats %>% select(all_of(full_stats_for_show)) %>% group_by(Round, Team) %>% summarise(across(all_of(stats_for_show), sum, .names = "sum_{col}"))
+
+# just the selected team
+st_yearly_stats <- yearly_specific_team_stats %>% filter(Team == selected_team)
+
+# full competition average
+c_yearly_stats <- yearly_specific_team_stats %>% group_by(Round) %>% summarise(across(all_of(paste("sum_", stats_for_show, sep="")), mean, .names = "average_{col}"))
+
 team_info_vis <- avg_games_plot + team_player_plot_multi +
   plot_annotation(title = paste0("Player review for the ", selected_team, "'s ", selected_year, " season."), theme = theme(plot.title = element_text(hjust = 0.5)))
