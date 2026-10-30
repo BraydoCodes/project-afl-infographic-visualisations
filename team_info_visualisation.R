@@ -104,20 +104,23 @@ stats_for_show <- c("Kicks", "Marks")
 # Fails early
 stopifnot(stats_for_show %in% valid_stats)
 full_stats_for_show <- c("Round", "Team", stats_for_show)
-yearly_specific_team_stats <- yearly_team_stats %>% select(all_of(full_stats_for_show)) %>% group_by(Round, Team) %>% summarise(across(all_of(stats_for_show), sum, .names = "sum_{col}"))
+yearly_specific_team_stats <- yearly_team_stats %>% select(all_of(full_stats_for_show)) %>% group_by(Round, Team) %>% summarise(across(all_of(stats_for_show), sum, .names = "Sum of {col}"))
 
 # just the selected team
 st_yearly_stats <- yearly_specific_team_stats %>% filter(Team == selected_team)
 
 # full competition average
-c_yearly_stats <- yearly_specific_team_stats %>% group_by(Round) %>% summarise(across(all_of(paste("sum_", stats_for_show, sep="")), mean, .names = "{col}")) %>% mutate(Team = "All Teams")
+c_yearly_stats <- yearly_specific_team_stats %>% group_by(Round) %>% summarise(across(all_of(paste("Sum of ", stats_for_show, sep="")), mean, .names = "{col}")) %>% mutate(Team = "All Teams")
 
 # combine and pivot longer for graph
-combined_yearly_stats <- rbind(st_yearly_stats, c_yearly_stats) %>% pivot_longer(cols = starts_with("sum_"), names_to = "Statistic", values_to = "Total")
+combined_yearly_stats <- rbind(st_yearly_stats, c_yearly_stats) %>% pivot_longer(cols = starts_with("Sum of "), names_to = "Statistic", values_to = "Total")
 
 # plot
-stats_for_the_year <- ggplot(combined_yearly_stats) + geom_line(aes(x = Round, y = Total,  group = Team, colour = Team)) +
-  scale_colour_manual(values = compared_colours) + theme_minimal() + facet_wrap(~Statistic)
+stats_for_the_year <- ggplot(combined_yearly_stats) + geom_line(aes(x =  factor(Round, levels = round_order), y = Total,  group = Team, colour = Team)) +
+  scale_colour_manual(values = compared_colours) + labs(x = "Round", title = paste0("Statistics throughout the year for ", selected_team, " in ", selected_year)) + 
+  theme_classic() + facet_wrap(~Statistic)  +
+  theme(plot.title = element_text(hjust = 0.5, size = 15, face = 'bold'), axis.text.x = element_text(angle = 45),
+        legend.title = element_text(), legend.position = "bottom")
 stats_for_the_year
 
 team_info_vis <- avg_games_plot + team_player_plot_multi +
