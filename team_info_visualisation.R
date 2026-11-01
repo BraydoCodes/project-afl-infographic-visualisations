@@ -28,13 +28,13 @@ avg_games_plot <- ggplot(avg_games_player, aes(x = Round, y = Avg_Experience, fi
        title = paste0(selected_team,"'s Average Experience in the team over the whole season in ", selected_year),
        caption = "The AFL") + theme_classic() + scale_fill_gradientn(colours = c(current_team_colour, "grey10")) +
   theme(legend.position = "none", axis.text.x = element_text(angle = 45, hjust = 1),
-        plot.title = element_text(hjust = 0.5, size = 15, face = 'bold'),
+        plot.title = element_text(hjust = 0.5, size = 15, face = 'bold', base_family = font_family),
         plot.caption = element_text(color = "grey40", hjust = 0.5, size = 12, margin = margin(5, 0, 0, 0))) + 
   geom_rect(aes(xmin = max_diff_agp - 0.5, xmax = max_diff_agp + 1.5,
-                ymin = 0, ymax = highest_height),
+                ymin = 0, ymax = highest_height + 1),
             fill = "red", alpha = 0.02) +
   annotate("text", x= max_diff_agp, y=highest_height, label="Largest gap in experience", 
-           vjust=-highest_height * 0.01, size=2)
+           vjust=-highest_height * 0.01, hjust = 0.2, size=2)
 
 # find the number of players that played a game that year
 unique_players <- n_distinct(stats_for_team$PlayerName)
@@ -84,7 +84,7 @@ team_player_plot_multi <- ggplot(team_player_stats, aes(x = team, y = value, fil
   labs(x = 'Statistic', y = 'Number of Occurrences', title = 'Number of in player stats for selected team & the competitions average',
        subtitle = sub, fill = "Team") + 
   geom_col( ) + theme_few() + scale_fill_manual(values = compared_colours) +
-  theme(plot.title = element_text(hjust = 0.5, size = 15, face = 'bold'), axis.title.x = element_blank(), plot.subtitle=element_markdown()) + 
+  theme(plot.title = element_text(hjust = 0.5, size = 15, face = 'bold'), axis.title.x = element_blank(), plot.subtitle=element_markdown(), base_family = font_family) + 
   facet_wrap(~stat) + geom_text(data = v, mapping = aes(x = 2, y = y, label = Value),
     vjust = -0.5, fontface = "bold"
   )
@@ -106,6 +106,8 @@ stopifnot(stats_for_show %in% valid_stats)
 full_stats_for_show <- c("Round", "Team", stats_for_show)
 yearly_specific_team_stats <- yearly_team_stats %>% select(all_of(full_stats_for_show)) %>% group_by(Round, Team) %>% summarise(across(all_of(stats_for_show), sum, .names = "Sum of {col}"))
 
+
+num_of_stats <- length(stats_for_show)
 # just the selected team
 st_yearly_stats <- yearly_specific_team_stats %>% filter(Team == selected_team)
 
@@ -119,9 +121,10 @@ combined_yearly_stats <- rbind(st_yearly_stats, c_yearly_stats) %>% pivot_longer
 stats_for_the_year <- ggplot(combined_yearly_stats) + geom_line(aes(x =  factor(Round, levels = round_order), y = Total,  group = Team, colour = Team)) +
   scale_colour_manual(values = compared_colours) + labs(x = "Round", title = paste0("Statistics throughout the year for ", selected_team, " in ", selected_year)) + 
   theme_classic() + facet_wrap(~Statistic)  +
-  theme(plot.title = element_text(hjust = 0.5, size = 15, face = 'bold'), axis.text.x = element_text(angle = 45),
-        legend.title = element_text(), legend.position = "bottom")
+  theme(plot.title = element_text(hjust = 0.5, size = 15, face = 'bold'), axis.text.x = element_text(angle = 45, size = 10 / num_of_stats, vjust = 0.5),
+        legend.title = element_text(), legend.position = "bottom", base_family = font_family)
 stats_for_the_year
 
-team_info_vis <- avg_games_plot + team_player_plot_multi +
-  plot_annotation(title = paste0("Player review for the ", selected_team, "'s ", selected_year, " season."), theme = theme(plot.title = element_text(hjust = 0.5)))
+team_info_vis <- (avg_games_plot + team_player_plot_multi) / stats_for_the_year +
+  plot_annotation(title = paste0("Team Player review for the ", selected_team, "'s ", selected_year, " season."), theme = theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 24)))
+team_info_vis
