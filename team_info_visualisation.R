@@ -1,130 +1,133 @@
-# use the stats table that lists every player that has played an afl game since 2012
-yearly_team_stats <- stats_data %>% dplyr::filter(Year == selected_year)
-
-# count competition team number - we do this because teams are likely to be added
-competition_team_numbers <- unique(yearly_team_stats$Team)
-
-# filter down stats table
-stats_for_team <- yearly_team_stats %>% dplyr::filter(Team == selected_team) 
-
-
-# find the experience in the team for each round of the year
-avg_games_player <- stats_for_team %>% group_by(Round) %>% summarise(Avg_Experience = mean(GameNumber), Total_Experience = sum(GameNumber))
-
-# to order, we must filter out the rounds the team did not play in the year
-round_order_team <- data.frame(Round = round_order) %>% filter(Round %in% avg_games_player$Round)
-avg_games_player <- avg_games_player %>% mutate(Round = factor(Round, labels = round_order_team[,1]))
-
-
-# find the max difference, used to annotate
-max_diff_agp <- which(abs(diff(avg_games_player$Total_Experience)) == max(abs(diff((avg_games_player$Total_Experience)))))
-highest_height <- max(as.numeric(avg_games_player[max_diff_agp,]["Avg_Experience"]), as.numeric(avg_games_player[max_diff_agp+1,]["Avg_Experience"]))
-
-
-
-# plot the avg games per player onto a bar plot
-avg_games_plot <- ggplot(avg_games_player, aes(x = Round, y = Avg_Experience, fill = Avg_Experience)) + geom_col( ) +
-  labs(y = "Average Experience",
-       title = paste0(selected_team,"'s Average Experience in the team over the whole season in ", selected_year),
-       caption = "The AFL") + theme_classic() + scale_fill_gradientn(colours = c(current_team_colour, "grey10")) +
-  theme(legend.position = "none", axis.text.x = element_text(angle = 45, hjust = 1),
-        plot.title = element_text(hjust = 0.5, size = 15, face = 'bold', base_family = font_family),
-        plot.caption = element_text(color = "grey40", hjust = 0.5, size = 12, margin = margin(5, 0, 0, 0))) + 
-  geom_rect(aes(xmin = max_diff_agp - 0.5, xmax = max_diff_agp + 1.5,
-                ymin = 0, ymax = highest_height + 1),
-            fill = "red", alpha = 0.02) +
-  annotate("text", x= max_diff_agp, y=highest_height, label="Largest gap in experience", 
-           vjust=-highest_height * 0.01, hjust = 0.2, size=2)
-
-# find the number of players that played a game that year
-unique_players <- n_distinct(stats_for_team$PlayerName)
-avg_competition_unique_players <- floor(n_distinct(yearly_team_stats$PlayerName) / length(competition_team_numbers))
-
-# find players who played all game time
-games_player_all_time <- stats_for_team %>% dplyr::filter(X.Played == 100)
-num_of_gpat <- nrow(games_player_all_time)
-
-## competition average
-avg_all_games_played_per_team <- yearly_team_stats %>% dplyr::filter(X.Played == 100) %>% group_by(Team) %>% summarise(total_all_played = n())
-avg_one <- mean(avg_all_games_played_per_team$total_all_played)
-
-# keep only the information from the player that had the most disposals in each round
-highest_possession_getters <- stats_for_team %>% group_by(Round) %>% dplyr::filter(Disposals == max(Disposals))
-num_of_hpg <- n_distinct(highest_possession_getters$PlayerId)
-
-# competition average most disposals
-all_highest_possession_getters <- yearly_team_stats %>% group_by(Team, Round) %>% dplyr::filter(Disposals == max(Disposals))
-average_hpg <- n_distinct(all_highest_possession_getters$PlayerId) / length(competition_team_numbers)
-
-# create the dataframe , this solution right now is quite volatile
-team_player_stats <- data.frame(
-  team=rep(c(selected_team, "All Teams"), each = 3),
-  stat=rep(c('Number All Game Time', 'Unique Highest Possession Getters', 'Unique Players'), times = 2),
-  value=c(num_of_gpat, num_of_hpg, unique_players, avg_one, average_hpg, avg_competition_unique_players))
-
-compared_colours <- c("#999999", current_team_colour)
-
-# finds the difference for two difference subjects
-differences <- function(tps_df){
-  sep_stat_additive <- nrow(tps_df) / 2
-  diff_vec <- c()
-  for(i in 1:sep_stat_additive){
-    diff_vec <- append(diff_vec, round(tps_df[i,]["value"] - tps_df[i + sep_stat_additive,]["value"], 1))
+create_team_vis <- function(selected_year, selected_team){
+  
+  # use the stats table that lists every player that has played an afl game since 2012
+  yearly_team_stats <- stats_data %>% dplyr::filter(Year == selected_year)
+  
+  # count competition team number - we do this because teams are likely to be added
+  competition_team_numbers <- unique(yearly_team_stats$Team)
+  
+  # filter down stats table
+  stats_for_team <- yearly_team_stats %>% dplyr::filter(Team == selected_team) 
+  
+  
+  # find the experience in the team for each round of the year
+  avg_games_player <- stats_for_team %>% group_by(Round) %>% summarise(Avg_Experience = mean(GameNumber), Total_Experience = sum(GameNumber))
+  
+  # to order, we must filter out the rounds the team did not play in the year
+  round_order_team <- data.frame(Round = round_order) %>% filter(Round %in% avg_games_player$Round)
+  avg_games_player <- avg_games_player %>% mutate(Round = factor(Round, labels = round_order_team[,1]))
+  
+  
+  # find the max difference, used to annotate
+  max_diff_agp <- which(abs(diff(avg_games_player$Total_Experience)) == max(abs(diff((avg_games_player$Total_Experience)))))
+  highest_height <- max(as.numeric(avg_games_player[max_diff_agp,]["Avg_Experience"]), as.numeric(avg_games_player[max_diff_agp+1,]["Avg_Experience"]))
+  
+  
+  
+  # plot the avg games per player onto a bar plot
+  avg_games_plot <- ggplot(avg_games_player, aes(x = Round, y = Avg_Experience, fill = Avg_Experience)) + geom_col( ) +
+    labs(y = "Average Experience",
+         title = paste0(selected_team,"'s Average Experience in the team over the whole season in ", selected_year),
+         caption = "The AFL") + theme_classic() + scale_fill_gradientn(colours = c(current_team_colour, "grey10")) +
+    theme(legend.position = "none", axis.text.x = element_text(angle = 45, hjust = 1),
+          plot.title = element_text(hjust = 0.5, size = 15, face = 'bold', base_family = font_family),
+          plot.caption = element_text(color = "grey40", hjust = 0.5, size = 12, margin = margin(5, 0, 0, 0))) + 
+    geom_rect(aes(xmin = max_diff_agp - 0.5, xmax = max_diff_agp + 1.5,
+                  ymin = 0, ymax = highest_height + 1),
+              fill = "red", alpha = 0.02) +
+    annotate("text", x= max_diff_agp, y=highest_height, label="Largest gap in experience", 
+             vjust=-highest_height * 0.01, hjust = 0.2, size=2)
+  
+  # find the number of players that played a game that year
+  unique_players <- n_distinct(stats_for_team$PlayerName)
+  avg_competition_unique_players <- floor(n_distinct(yearly_team_stats$PlayerName) / length(competition_team_numbers))
+  
+  # find players who played all game time
+  games_player_all_time <- stats_for_team %>% dplyr::filter(X.Played == 100)
+  num_of_gpat <- nrow(games_player_all_time)
+  
+  ## competition average
+  avg_all_games_played_per_team <- yearly_team_stats %>% dplyr::filter(X.Played == 100) %>% group_by(Team) %>% summarise(total_all_played = n())
+  avg_one <- mean(avg_all_games_played_per_team$total_all_played)
+  
+  # keep only the information from the player that had the most disposals in each round
+  highest_possession_getters <- stats_for_team %>% group_by(Round) %>% dplyr::filter(Disposals == max(Disposals))
+  num_of_hpg <- n_distinct(highest_possession_getters$PlayerId)
+  
+  # competition average most disposals
+  all_highest_possession_getters <- yearly_team_stats %>% group_by(Team, Round) %>% dplyr::filter(Disposals == max(Disposals))
+  average_hpg <- n_distinct(all_highest_possession_getters$PlayerId) / length(competition_team_numbers)
+  
+  # create the dataframe , this solution right now is quite volatile
+  team_player_stats <- data.frame(
+    team=rep(c(selected_team, "All Teams"), each = 3),
+    stat=rep(c('Number All Game Time', 'Unique Highest Possession Getters', 'Unique Players'), times = 2),
+    value=c(num_of_gpat, num_of_hpg, unique_players, avg_one, average_hpg, avg_competition_unique_players))
+  
+  compared_colours <- c("#999999", current_team_colour)
+  
+  # finds the difference for two difference subjects
+  differences <- function(tps_df){
+    sep_stat_additive <- nrow(tps_df) / 2
+    diff_vec <- c()
+    for(i in 1:sep_stat_additive){
+      diff_vec <- append(diff_vec, round(tps_df[i,]["value"] - tps_df[i + sep_stat_additive,]["value"], 1))
+    }
+    unlist(diff_vec)
   }
-  unlist(diff_vec)
+  v <- data.frame(team = selected_team, stat = unique(team_player_stats$stat), y = team_player_stats[1:3,]$value, Value = differences(team_player_stats))
+  v$Value <- lapply(v$Value, function(x) sprintf("%+3.1f", x))
+  
+  sub <- paste("The <strong>Number All Game Time</strong> refers to players who were on the ground for the entire duration of the game, without <br>ever coming off for a break.<br> 
+                          <strong>Unique Highest Possession Getter</strong> is based on the unique diversity of players who had the most possession or <br>disposals at the end of each game.<br>
+                          <strong>Unique Players</strong> refers to the number of players that took to the field in a given season.")
+  # spread version
+  team_player_plot_multi <- ggplot(team_player_stats, aes(x = team, y = value, fill = team)) + 
+    labs(x = 'Statistic', y = 'Number of Occurrences', title = 'Number of in player stats for selected team & the competitions average',
+         subtitle = sub, fill = "Team") + 
+    geom_col( ) + theme_few() + scale_fill_manual(values = compared_colours) +
+    theme(plot.title = element_text(hjust = 0.5, size = 15, face = 'bold'), axis.title.x = element_blank(), plot.subtitle=element_markdown(), base_family = font_family) + 
+    facet_wrap(~stat) + geom_text(data = v, mapping = aes(x = 2, y = y, label = Value),
+      vjust = -0.5, fontface = "bold"
+    )
+  
+  # this graph will showcase team stats to competition average for every round
+  
+  # compute all valid statistics that can be shown
+  stats_row_names <- colnames(stats_for_team)
+  
+  # you could type out all columns that should be excluded as a stat, however I am just pointing a start and end index for ease
+  start_index = 8
+  end_index = 29
+  valid_stats <- stats_row_names[start_index:end_index]
+  
+  # these are the selected stats you want in the visualisation
+  stats_for_show <- c("Kicks", "Marks")
+  # Fails early
+  stopifnot(stats_for_show %in% valid_stats)
+  full_stats_for_show <- c("Round", "Team", stats_for_show)
+  yearly_specific_team_stats <- yearly_team_stats %>% select(all_of(full_stats_for_show)) %>% group_by(Round, Team) %>% summarise(across(all_of(stats_for_show), sum, .names = "Sum of {col}"))
+  
+  
+  num_of_stats <- length(stats_for_show)
+  # just the selected team
+  st_yearly_stats <- yearly_specific_team_stats %>% filter(Team == selected_team)
+  
+  # full competition average
+  c_yearly_stats <- yearly_specific_team_stats %>% group_by(Round) %>% summarise(across(all_of(paste("Sum of ", stats_for_show, sep="")), mean, .names = "{col}")) %>% mutate(Team = "All Teams")
+  
+  # combine and pivot longer for graph
+  combined_yearly_stats <- rbind(st_yearly_stats, c_yearly_stats) %>% pivot_longer(cols = starts_with("Sum of "), names_to = "Statistic", values_to = "Total")
+  
+  # plot
+  stats_for_the_year <- ggplot(combined_yearly_stats) + geom_line(aes(x =  factor(Round, levels = round_order), y = Total,  group = Team, colour = Team)) +
+    scale_colour_manual(values = compared_colours) + labs(x = "Round", title = paste0("Statistics throughout the year for ", selected_team, " in ", selected_year)) + 
+    theme_classic() + facet_wrap(~Statistic)  +
+    theme(plot.title = element_text(hjust = 0.5, size = 15, face = 'bold'), axis.text.x = element_text(angle = 45, size = 10 / num_of_stats, vjust = 0.5),
+          legend.title = element_text(), legend.position = "bottom", base_family = font_family)
+  stats_for_the_year
+  
+  team_info_vis <- (avg_games_plot + team_player_plot_multi) / stats_for_the_year +
+    plot_annotation(title = paste0("Team Player review for the ", selected_team, "'s ", selected_year, " season."), theme = theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 24)))
+  team_info_vis
 }
-v <- data.frame(team = selected_team, stat = unique(team_player_stats$stat), y = team_player_stats[1:3,]$value, Value = differences(team_player_stats))
-v$Value <- lapply(v$Value, function(x) sprintf("%+3.1f", x))
-
-sub <- paste("The <strong>Number All Game Time</strong> refers to players who were on the ground for the entire duration of the game, without <br>ever coming off for a break.<br> 
-                        <strong>Unique Highest Possession Getter</strong> is based on the unique diversity of players who had the most possession or <br>disposals at the end of each game.<br>
-                        <strong>Unique Players</strong> refers to the number of players that took to the field in a given season.")
-# spread version
-team_player_plot_multi <- ggplot(team_player_stats, aes(x = team, y = value, fill = team)) + 
-  labs(x = 'Statistic', y = 'Number of Occurrences', title = 'Number of in player stats for selected team & the competitions average',
-       subtitle = sub, fill = "Team") + 
-  geom_col( ) + theme_few() + scale_fill_manual(values = compared_colours) +
-  theme(plot.title = element_text(hjust = 0.5, size = 15, face = 'bold'), axis.title.x = element_blank(), plot.subtitle=element_markdown(), base_family = font_family) + 
-  facet_wrap(~stat) + geom_text(data = v, mapping = aes(x = 2, y = y, label = Value),
-    vjust = -0.5, fontface = "bold"
-  )
-
-# this graph will showcase team stats to competition average for every round
-
-# compute all valid statistics that can be shown
-stats_row_names <- colnames(stats_for_team)
-
-# you could type out all columns that should be excluded as a stat, however I am just pointing a start and end index for ease
-start_index = 8
-end_index = 29
-valid_stats <- stats_row_names[start_index:end_index]
-
-# these are the selected stats you want in the visualisation
-stats_for_show <- c("Kicks", "Marks")
-# Fails early
-stopifnot(stats_for_show %in% valid_stats)
-full_stats_for_show <- c("Round", "Team", stats_for_show)
-yearly_specific_team_stats <- yearly_team_stats %>% select(all_of(full_stats_for_show)) %>% group_by(Round, Team) %>% summarise(across(all_of(stats_for_show), sum, .names = "Sum of {col}"))
-
-
-num_of_stats <- length(stats_for_show)
-# just the selected team
-st_yearly_stats <- yearly_specific_team_stats %>% filter(Team == selected_team)
-
-# full competition average
-c_yearly_stats <- yearly_specific_team_stats %>% group_by(Round) %>% summarise(across(all_of(paste("Sum of ", stats_for_show, sep="")), mean, .names = "{col}")) %>% mutate(Team = "All Teams")
-
-# combine and pivot longer for graph
-combined_yearly_stats <- rbind(st_yearly_stats, c_yearly_stats) %>% pivot_longer(cols = starts_with("Sum of "), names_to = "Statistic", values_to = "Total")
-
-# plot
-stats_for_the_year <- ggplot(combined_yearly_stats) + geom_line(aes(x =  factor(Round, levels = round_order), y = Total,  group = Team, colour = Team)) +
-  scale_colour_manual(values = compared_colours) + labs(x = "Round", title = paste0("Statistics throughout the year for ", selected_team, " in ", selected_year)) + 
-  theme_classic() + facet_wrap(~Statistic)  +
-  theme(plot.title = element_text(hjust = 0.5, size = 15, face = 'bold'), axis.text.x = element_text(angle = 45, size = 10 / num_of_stats, vjust = 0.5),
-        legend.title = element_text(), legend.position = "bottom", base_family = font_family)
-stats_for_the_year
-
-team_info_vis <- (avg_games_plot + team_player_plot_multi) / stats_for_the_year +
-  plot_annotation(title = paste0("Team Player review for the ", selected_team, "'s ", selected_year, " season."), theme = theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 24)))
-team_info_vis

@@ -39,15 +39,15 @@ showtext_auto()
 mode_options <- c("YearSummary", "TeamSummary")
 
 # change this to change the resulting output type from available options in mode_options
-current_mode <- "TeamSummary"
+current_mode <- "YearSummary"
 stopifnot(current_mode %in% mode_options)
 
 # SELECTED TEAM AND YEAR
 # CHANGE YEAR AND TEAM YOU WANT TO SELECT - YEAR MUST BE BETWEEN 2012-CURRENT AND TEAM MUST BE THE LOCATION OF THE TEAM 
-selected_year <- 2025
-selected_team <- "St Kilda"
+target_year <- 2025
+target_team <- "St Kilda"
   
-previous_year <- selected_year - 1
+previous_year <- target_year - 1
 
 # team name and colour references
 team_names <- c("Adelaide", "Brisbane", "Carlton", "Collingwood", "Essendon", "Fremantle", "Geelong", "Gold Coast",
@@ -55,14 +55,14 @@ team_names <- c("Adelaide", "Brisbane", "Carlton", "Collingwood", "Essendon", "F
                   "St Kilda", "Sydney", "West Coast", "Western Bulldogs")
 team_colours <- c("#004B8D", "#A30046", "#031A29", "#000000", "#CC2031", "#2A0D54", "#002B5C", "#E02112", "#F47920",
                   "#4D2004", "#0F1131", "#1A3B8E", "#008AAB", "#FFD200", "#ED1B2F", "#E1251B", "#F2A900", "#20539D" )
-current_team_colour <- team_colours[which(team_names==selected_team)]
+current_team_colour <- team_colours[which(team_names==target_team)]
 
   
 # do not proceed if invalid parameters
-stopifnot((selected_team %in% team_names && selected_year >= 2012 && selected_year <= 2025))
+stopifnot((target_team %in% team_names && target_year >= 2012 && target_year <= 2025))
 # keep the order preserved for later
-current_year_format <- stats_data %>% dplyr::filter(Year == selected_year)
-year_game_data <- games_data %>% dplyr::filter(Year == selected_year)
+current_year_format <- stats_data %>% dplyr::filter(Year == target_year)
+year_game_data <- games_data %>% dplyr::filter(Year == target_year)
 round_order <- unique(year_game_data$Round)
 
 if (current_mode == mode_options[1]){
@@ -73,9 +73,8 @@ if (current_mode == mode_options[1]){
   source("afl_ladder_table.R")
   source("stats_for_ladder.R")
   
-  ladder_vis
+  create_ladder_vis(target_year, target_team)
 } else if(current_mode == mode_options[2] ){
   source("team_info_visualisation.R")
-  
-  team_info_vis
+  create_team_vis(target_year, target_team)
 }

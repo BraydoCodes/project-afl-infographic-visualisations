@@ -18,11 +18,17 @@ ui <- fluidPage(
 
 
 
-server <- function(input, output, session) { source("team_info_visualisation.R", local = TRUE)
-  output$plot <- renderPlot(
-    team_info_vis
-  )
+server <- function(input, output, session) {
+  str(reactive({input$team}))
+    selected_team <- req(reactive({input$team})) # not compatible type, I could make a funcion that returns filtered datasets? function seems to be the only way that might work here
+    selected_year <- req(reactive(as.numeric({input$year})))
+    source("team_info_visualisation.R", local = TRUE)
+    output$plot <- renderPlot(
+      team_info_vis
+    )
 }
+  
+
 
 
 shinyApp(ui = ui, server = server)
