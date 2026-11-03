@@ -1,4 +1,5 @@
 interesting_function <- function(selected_year, selected_team){
+  previous_year <- selected_year - 1
   
   calculate_percentage <- function(sFor, sAgainst) {
     return(round(sFor/aAgainst * 100),1)
@@ -73,6 +74,6 @@ interesting_function <- function(selected_year, selected_team){
         current[i,]$runningtotal = as.numeric(current[i,]$diff)
       }
     }
-    points_progression <- rbind(points_progression, current)
+    points_progression <<- rbind(points_progression, current)
   }
 }

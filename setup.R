@@ -18,7 +18,7 @@ library(showtext)
 # I would download this package onetime (https://search.r-project.org/CRAN/refmans/onetime/html/onetime.html), 
 # to run this code only once however, I would like to keep this project as lightweight as possible (even though it is pretty intensive),
 # comment out if you would like
-icons::download_ionicons()
+# icons::download_ionicons()
 
 # clear all variables for a clean slate
 rm(list = ls())
@@ -46,8 +46,7 @@ stopifnot(current_mode %in% mode_options)
 # CHANGE YEAR AND TEAM YOU WANT TO SELECT - YEAR MUST BE BETWEEN 2012-CURRENT AND TEAM MUST BE THE LOCATION OF THE TEAM 
 target_year <- 2025
 target_team <- "St Kilda"
-  
-previous_year <- target_year - 1
+
 
 # team name and colour references
 team_names <- c("Adelaide", "Brisbane", "Carlton", "Collingwood", "Essendon", "Fremantle", "Geelong", "Gold Coast",
@@ -55,15 +54,20 @@ team_names <- c("Adelaide", "Brisbane", "Carlton", "Collingwood", "Essendon", "F
                   "St Kilda", "Sydney", "West Coast", "Western Bulldogs")
 team_colours <- c("#004B8D", "#A30046", "#031A29", "#000000", "#CC2031", "#2A0D54", "#002B5C", "#E02112", "#F47920",
                   "#4D2004", "#0F1131", "#1A3B8E", "#008AAB", "#FFD200", "#ED1B2F", "#E1251B", "#F2A900", "#20539D" )
-current_team_colour <- team_colours[which(team_names==target_team)]
 
+generate_globals <<- function(year, team){
+  current_team_colour <<- team_colours[which(team_names==team)]
   
-# do not proceed if invalid parameters
-stopifnot((target_team %in% team_names && target_year >= 2012 && target_year <= 2025))
-# keep the order preserved for later
-current_year_format <- stats_data %>% dplyr::filter(Year == target_year)
-year_game_data <- games_data %>% dplyr::filter(Year == target_year)
-round_order <- unique(year_game_data$Round)
+    
+  # do not proceed if invalid parameters
+  stopifnot((team %in% team_names && year >= 2012 && year <= 2025))
+  # keep the order preserved for later
+  current_year_format <<- stats_data %>% dplyr::filter(Year == year)
+  year_game_data <<- games_data %>% dplyr::filter(Year == year)
+  round_order <<- unique(year_game_data$Round)
+}
+generate_globals(target_year, target_team)
+
 
 if (current_mode == mode_options[1]){
   team_df_ref <- data.frame(team_names, team_colours)

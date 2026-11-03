@@ -16,19 +16,26 @@ ui <- fluidPage(
   plotOutput(outputId = 'plot')
 )
 
-
-
 server <- function(input, output, session) {
-  str(reactive({input$team}))
-    selected_team <- req(reactive({input$team})) # not compatible type, I could make a funcion that returns filtered datasets? function seems to be the only way that might work here
-    selected_year <- req(reactive(as.numeric({input$year})))
+    #selected_team <- req(reactive({input$team})) # not compatible type, I could make a funcion that returns filtered datasets? function seems to be the only way that might work here
+    #selected_year <- req(reactive(as.numeric({input$year})))
+    source("interesting_insights.R", local = TRUE)
+    source("afl_ladder_table.R", local = TRUE)
+    source("stats_for_ladder.R", local = TRUE)
     source("team_info_visualisation.R", local = TRUE)
+  
+    # debounce to prevent it from generating graphs too quickly
+    year <- reactive({ input$year }) %>% debounce(5000)
+    team <- reactive({ input$team }) %>% debounce(5000)
+  
     output$plot <- renderPlot(
-      team_info_vis
-    )
+      if (input$mode == mode_options[1]){
+        create_ladder_vis(year(), team())
+      } else {
+        create_team_vis(year(), team())
+      }
+    ) %>%
+      bindCache(year(), team())
 }
   
-
-
-
 shinyApp(ui = ui, server = server)

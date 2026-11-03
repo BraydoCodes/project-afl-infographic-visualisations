@@ -1,4 +1,5 @@
 create_team_vis <- function(selected_year, selected_team){
+  generate_globals(selected_year, selected_team)
   
   # use the stats table that lists every player that has played an afl game since 2012
   yearly_team_stats <- stats_data %>% dplyr::filter(Year == selected_year)

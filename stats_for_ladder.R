@@ -1,4 +1,7 @@
 create_ladder_vis <- function(selected_year, selected_team){
+  generate_globals(selected_year, selected_team)
+  
+  previous_year <- selected_year - 1
   
   # this file will present a teams season summed up by numbers
   # it will provide an insight to the numbers that made up the season
