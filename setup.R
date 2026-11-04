@@ -1,30 +1,16 @@
+# clear all variables for a clean slate
+rm(list = ls())
+
+# set the working directory to ensure that we can access the relative path of files
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) 
 # packages required for the project to work
-library(dplyr)
-library(tidyverse)
-library(ggtext)
-library(ggplot2)
-library(gghighlight)
-library(ggthemes)
-library(ggicons)
-library(ggpattern)
-library(ggrepel)
-library(RColorBrewer) # for some of the palettes used
-library(patchwork) # for merging r studio graphs
-library(gt) # for table generation
-library(gtExtras)
-library(showtext)
+source('library_setup.R')
 
 # the line below can be used to download ionicons (the icon service) used so that the icons package is aware of it
 # I would download this package onetime (https://search.r-project.org/CRAN/refmans/onetime/html/onetime.html), 
 # to run this code only once however, I would like to keep this project as lightweight as possible (even though it is pretty intensive),
 # comment out if you would like
 # icons::download_ionicons()
-
-# clear all variables for a clean slate
-rm(list = ls())
-
-# set the working directory to ensure that we can access the relative path of files
-setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) 
 
 # data sources
 games_data <- read.csv("./games.csv")

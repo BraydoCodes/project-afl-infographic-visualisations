@@ -1,8 +1,6 @@
-library(shiny)
-library(shinyWidgets)
 source('setup.R')
 
-ui <- fluidPage(
+ui <- fluidPage( theme = bs_theme(version = 5, bootswatch = "litera"),
   fluidRow(
     column(width = 2,
       pickerInput(inputId = 'mode', label = 'Mode', choices = mode_options)
