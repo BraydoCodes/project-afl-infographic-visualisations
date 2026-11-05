@@ -25,13 +25,13 @@ showtext_auto()
 mode_options <- c("YearSummary", "TeamSummary")
 
 # change this to change the resulting output type from available options in mode_options
-current_mode <- "YearSummary"
+current_mode <- "TeamSummary"
 stopifnot(current_mode %in% mode_options)
 
 # SELECTED TEAM AND YEAR
 # CHANGE YEAR AND TEAM YOU WANT TO SELECT - YEAR MUST BE BETWEEN 2012-CURRENT AND TEAM MUST BE THE LOCATION OF THE TEAM 
-target_year <- 2025
-target_team <- "St Kilda"
+target_year <- 2024
+target_team <- "Adelaide"
 
 
 # team name and colour references
@@ -55,16 +55,14 @@ generate_globals <<- function(year, team){
 generate_globals(target_year, target_team)
 
 
-if (current_mode == mode_options[1]){
-  team_df_ref <- data.frame(team_names, team_colours)
-  colnames(team_df_ref) <- c("Team", "Colours")
-  
+team_df_ref <<- data.frame(team_names, team_colours)
+colnames(team_df_ref) <- c("Team", "Colours")
+
+# load functions
   source("interesting_insights.R")
   source("afl_ladder_table.R")
   source("stats_for_ladder.R")
-  
   create_ladder_vis(target_year, target_team)
-} else if(current_mode == mode_options[2] ){
+
   source("team_info_visualisation.R")
   create_team_vis(target_year, target_team)
-}

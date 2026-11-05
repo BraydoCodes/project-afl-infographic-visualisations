@@ -33,7 +33,7 @@ server <- function(input, output, session) {
         create_team_vis(year(), team())
       }
     ) %>%
-      bindCache(year(), team())
+      bindCache(input$mode, year(), team())
 }
   
 shinyApp(ui = ui, server = server)

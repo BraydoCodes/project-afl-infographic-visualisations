@@ -10,12 +10,18 @@ create_team_vis <- function(selected_year, selected_team){
   # filter down stats table
   stats_for_team <- yearly_team_stats %>% dplyr::filter(Team == selected_team) 
   
+  # it appears that there is an error with the dataset only for 2024 where in games_data r24 does not exist, whereas in 2025 it does exist, to ensure that it does not crash
+  # we unfortunately have to remove stats round 24 only for 2024
+  if(selected_year == 2024){
+    stats_for_team <- stats_for_team %>% dplyr::filter(Round %in% round_order)
+  }
+  
   
   # find the experience in the team for each round of the year
   avg_games_player <- stats_for_team %>% group_by(Round) %>% summarise(Avg_Experience = mean(GameNumber), Total_Experience = sum(GameNumber))
   
   # to order, we must filter out the rounds the team did not play in the year
-  round_order_team <- data.frame(Round = round_order) %>% filter(Round %in% avg_games_player$Round)
+  round_order_team <- data.frame(Round = round_order) %>% dplyr::filter(Round %in% avg_games_player$Round)
   avg_games_player <- avg_games_player %>% mutate(Round = factor(Round, labels = round_order_team[,1]))
   
   
@@ -82,11 +88,13 @@ create_team_vis <- function(selected_year, selected_team){
   sub <- paste("The <strong>Number All Game Time</strong> refers to players who were on the ground for the entire duration of the game, without <br>ever coming off for a break.<br> 
                           <strong>Unique Highest Possession Getter</strong> is based on the unique diversity of players who had the most possession or <br>disposals at the end of each game.<br>
                           <strong>Unique Players</strong> refers to the number of players that took to the field in a given season.")
+  
+  print(team_player_stats)
   # spread version
-  team_player_plot_multi <- ggplot(team_player_stats, aes(x = team, y = value, fill = team)) + 
+  team_player_plot_multi <- ggplot(team_player_stats, aes(x = factor(team, levels=c("All Teams", selected_team)), y = value, fill = factor(team, levels=c("All Teams", selected_team)))) + 
     labs(x = 'Statistic', y = 'Number of Occurrences', title = 'Number of in player stats for selected team & the competitions average',
          subtitle = sub, fill = "Team") + 
-    geom_col( ) + theme_few() + scale_fill_manual(values = compared_colours) +
+    geom_col( ) + theme_few() + scale_fill_manual(values = compared_colours) + scale_y_continuous(expand = expand_scale(mult = c(0, 0.1))) +
     theme(plot.title = element_text(hjust = 0.5, size = 15, face = 'bold'), axis.title.x = element_blank(), plot.subtitle=element_markdown(), base_family = font_family) + 
     facet_wrap(~stat) + geom_text(data = v, mapping = aes(x = 2, y = y, label = Value),
       vjust = -0.5, fontface = "bold"

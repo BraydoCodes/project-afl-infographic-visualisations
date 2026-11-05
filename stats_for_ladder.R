@@ -1,4 +1,5 @@
 create_ladder_vis <- function(selected_year, selected_team){
+  
   generate_globals(selected_year, selected_team)
   
   previous_year <- selected_year - 1
@@ -87,13 +88,25 @@ create_ladder_vis <- function(selected_year, selected_team){
   }
   
   # HELPER FUNCTION BASED ON DIFFERENCE, USED WHEN A DETERMINED DIRECTION IS REQUIRE TO MOVE OBJECT
-  difference_to_unit <- function(num1, num2){
-    if(num1 - num2 != 0){ # we have to check this to ensure we do not divide by 0
-      as.numeric((num2 - num1)/abs(num2 - num1) * (abs(num1) / 15))
-    }
-    else {
-      0
-    }
+  # I'm sorry, annotation_icon does not support vjust... makes this much more complex and ugly
+  difference_to_unit <- function(num1, num2, type){
+      if(num1 - num2 != 0){ # we have to check this to ensure we do not divide by 0
+        if(num2 > 4){
+          as.numeric((num2 - num1)/abs(num2 - num1) * (abs(num2) * 0.1))
+        } 
+        else {
+          if(type == 'text'){
+            as.numeric((num2 - num1)/abs(num2 - num1) * (abs(num1) / 2 + as.numeric((abs(num1) * 0.1))))
+          }
+          else {
+            -(as.numeric((num2 - num1)/abs(num2 - num1) * (abs(num1) / 2 - as.numeric((abs(num1) * 0.1)))))
+          }
+        }
+      }
+      else {
+        0
+      }
+    
   }
   
   # FUNCTION TO PLOT A COMPARISON BETWEEN THE CURRENT AND PREVIOUS YEAR FOR A STAT, A FUNCTION IS USED DYNAMICALLY
@@ -102,8 +115,9 @@ create_ladder_vis <- function(selected_year, selected_team){
     ggplot(d, aes(x = factor(Year), y = Total, fill = c("gray"))) +
       labs(x = 'Year', y = 'Total', 
            title = toupper(paste0(selected_team, "'s ", selected_year, " vs ", previous_year, " on ", stat_name)),
-           subtitle = paste0("Only the ", selected_year, " Home & Away season is included.")) + 
-      geom_text(aes(x = factor(Year), y = Total + (Total * 0.1), label = Total), 
+           subtitle = paste0("Only the ", selected_year, " Home & Away season is included.")) +
+      scale_y_continuous(expand = expand_scale(mult = c(0, 0.3))) +
+      geom_text(aes(x = factor(Year), y = Total, vjust = -0.2, label = Total), 
                 size = 5,
                 fontface = "bold", family = font_family) + 
       geom_col_pattern(
@@ -116,15 +130,20 @@ create_ladder_vis <- function(selected_year, selected_team){
       scale_fill_manual(values = adjust(d[1,]["Total"], d[2,]["Total"], 'fill', inverse)) + theme_few() +
       theme(text = element_text(family = font_family),
         plot.title = element_text(hjust = 0.5, size = 15, face = 'bold')) + guides(fill = "none") + 
+      
+      
       annotation_icon(icon = adjust(d[1,]["Total"], d[2,]["Total"], 'icon', inverse), x = factor(selected_year) , 
-                      y = as.numeric(d[2,]["Total"]) / 2 + difference_to_unit(d[1,]["Total"], d[2,]["Total"]), size = 15) +
-      annotate("text", x = factor(selected_year), y = as.numeric(d[2,]["Total"]) / 2 - difference_to_unit(d[1,]["Total"], d[2,]["Total"]), 
-               label = round(abs(as.numeric(d[2,]["Total"]) - as.numeric(d[1,]["Total"])),2), size = 10) + 
+                      y = as.numeric(d[2,]["Total"]) / 2 + difference_to_unit(d[1,]["Total"], d[2,]["Total"], 'icon'), size = 12) +
+      annotate("text", x = factor(selected_year), y = as.numeric(d[2,]["Total"]) / 2 - difference_to_unit(d[1,]["Total"], d[2,]["Total"], 'text'), 
+               label = round(abs(as.numeric(d[2,]["Total"]) - as.numeric(d[1,]["Total"])),2), size = 6) + 
+      
+      
       theme_minimal(base_family = font_family)
   }
   
   # combine only the win stat info and plot
   win_ranking <- rbind(key_comparison_ranking_longer[1,], key_comparison_ranking_longer[(1 + num_of_stats),])
+  
   p1 <- stat_comparison_plot(win_ranking, "Total", "Number of Wins")
   
   # combine only the percentage stat info and plot
