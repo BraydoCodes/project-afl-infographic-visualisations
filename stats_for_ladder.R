@@ -27,6 +27,7 @@ create_ladder_vis <- function(selected_year, selected_team){
   score_games_year <- all_games_year %>% mutate(first_half_to_second_half = case_when(HomeTeam == selected_team ~ convert_goal_points_to_number(x = HomeTeamScoreHT)/HomeTeamScore, 
                                                                                       AwayTeam == selected_team ~ convert_goal_points_to_number(x = AwayTeamScoreHT)/AwayTeamScore), 
                                                 score = case_when(HomeTeam == selected_team ~ HomeTeamScore, AwayTeam == selected_team ~ AwayTeamScore))
+  # clean dataframe
   score_games_year <- score_games_year %>% select(GameId, Venue, score, first_half_to_second_half) %>%  filter(score != -1)
   
   # insights based on the venue

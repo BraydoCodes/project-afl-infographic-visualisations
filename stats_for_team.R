@@ -1,11 +1,6 @@
 # on a target player and stat
 # determine the percentile (of how their performance in the stat compares to others) that they sit in
-
-library(dplyr)
-
-# use the stats table that lists every player that has played an afl game since 2012
-stats_data <- read.csv("./stats.csv")
-
+# this is a file that I will leave here as a relic, it may be included as a player (individual) mode
 target_player <- "Patrick Dangerfield"
 target_players <- c("Max Gawn", "Brodie Grundy", "Lloyd Meek", "Darcy Cameron")
 

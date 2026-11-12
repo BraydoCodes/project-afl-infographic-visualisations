@@ -1,18 +1,20 @@
 interesting_function <- function(selected_year, selected_team){
   previous_year <- selected_year - 1
   
+  # calculates the percentage (0 > inf) as a multiple of a 100, used for ladder percentage on points tie breaker
   calculate_percentage <- function(sFor, sAgainst) {
-    return(round(sFor/aAgainst * 100),1)
+    return(round(sFor/aAgainst * 100), 1)
   }
   
   # this is building the ladder - the official system that ranks the teams position every year
-  ladder_games_df <- data.frame(Year = games_data$Year, HomeTeam = games_data$HomeTeam, AwayTeam = games_data$AwayTeam, HomeTeamScore = games_data$HomeTeamScore, AwayTeamScore = games_data$AwayTeamScore, Round = games_data$Round)
+  ladder_games_df <- data.frame(Year = games_data$Year, HomeTeam = games_data$HomeTeam, AwayTeam = games_data$AwayTeam, 
+                                HomeTeamScore = games_data$HomeTeamScore, AwayTeamScore = games_data$AwayTeamScore, 
+                                Round = games_data$Round)
   
   # disregard finals
+  # in 2026 there is a new 'Wildcard Final' which will be added
   finals_names <- c("Qualifying Final", "Elimination Final", "Semi Final", "Preliminary Final", "Grand Final")
   ladder_games_df <- ladder_games_df %>% dplyr::filter(!Round %in% finals_names)
-  
-  # remove round as it is unneeded  - nope
   ladder_games_clean <- ladder_games_df %>% dplyr::filter(Year == selected_year | Year == previous_year)
   
   # remove away team information
@@ -48,7 +50,7 @@ interesting_function <- function(selected_year, selected_team){
   
   # rank position for each year
   ranking_for_clubs_all <<- table_for_clubs %>% arrange(-TotalPoints, -Percentage) %>% group_by(Year) %>%
-    mutate(position = order(order(rank(TotalPoints, ties.method = "min"),decreasing = TRUE)))
+    mutate(position = order(rank(TotalPoints, ties.method = "min"), decreasing = TRUE))
   
   # ladder for selected year, change in setup.R
   ranking_for_clubs <<- ranking_for_clubs_all %>% dplyr::filter(Year == selected_year)
@@ -62,16 +64,16 @@ interesting_function <- function(selected_year, selected_team){
   all_scores_target <- all_scores_target %>% select(-"ScoreFor", -"ScoreAgainst")
   all_scores_target$runningtotal <- 0
   
-  
+  # this bit of code is for determine the points for each round, it keeps track of all teams
   points_progression <<- all_scores_target[0,]
   for(i in 1:length(team_names)){
     current <- all_scores_target %>% dplyr::filter(Team == team_names[i]) %>% arrange(factor(Round, levels = round_order))
     iter = as.numeric(dplyr::count(current))
     for(i in 1:iter){
       if(i > 1){
-        current[i,]$runningtotal <- as.numeric(current[i-1,]$runningtotal) + as.numeric(current[i,]$diff)
+        current[i,]$runningtotal <- as.numeric(current[i - 1,]$runningtotal) + as.numeric(current[i,]$diff)
       } else {
-        current[i,]$runningtotal = as.numeric(current[i,]$diff)
+        current[i,]$runningtotal <- as.numeric(current[i,]$diff)
       }
     }
     points_progression <<- rbind(points_progression, current)

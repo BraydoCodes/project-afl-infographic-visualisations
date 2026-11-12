@@ -88,8 +88,6 @@ create_team_vis <- function(selected_year, selected_team){
   sub <- paste("The <strong>Number All Game Time</strong> refers to players who were on the ground for the entire duration of the game, without <br>ever coming off for a break.<br> 
                           <strong>Unique Highest Possession Getter</strong> is based on the unique diversity of players who had the most possession or <br>disposals at the end of each game.<br>
                           <strong>Unique Players</strong> refers to the number of players that took to the field in a given season.")
-  
-  print(team_player_stats)
   # spread version
   team_player_plot_multi <- ggplot(team_player_stats, aes(x = factor(team, levels=c("All Teams", selected_team)), y = value, fill = factor(team, levels=c("All Teams", selected_team)))) + 
     labs(x = 'Statistic', y = 'Number of Occurrences', title = 'Number of in player stats for selected team & the competitions average',
