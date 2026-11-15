@@ -44,7 +44,6 @@ There are plans to turn this into a R Shiny Application, however editting your `
 [x] - Team player insights for a given year (both team and individual)
 
 [x] - Shiny application with player, year and team selection dropdowns 
-  - Subject to visual bug (#2)
 
 [ ] - Select a player and the stats of the player are shown, highlight their biggests strength and most suprising statistic/s
   - Currently not in planned scope
